@@ -2,21 +2,53 @@
 
 # Enum
 
-An easy-to-use Go library for working with enums.
+**Elegant and powerful enums for Go with zero code generation!**
 
-It simplifies serialization, deserialization, and supports constant enums, all without the need for code generation.
+`xybor-x/enum` makes working with enums in Go intuitive and efficient by providing:
+- Seamless enum-string mappings.
+- Constant enums compatible with Go's `iota` conventions.
+- Utility functions for JSON serialization and deserialization.
+- Rich utilities for enhanced enum handling.
 
-## Features
 
-- **No Code Generation**: Simplifies usage by eliminating the need for additional tools or build steps.
-- **Supports Constant Enums**: Enables defining immutable enum values for safer and more predictable behavior.
-- **Compatible with Standard Enum Definitions**: Easily integrates with Go's conventional enum patterns, including `iota`.
-- **Easy Conversion**: Effortlessly convert between numeric and string representations for better usability and flexibility.
-- **Serializable**: Provides JSON serialization and deserialization with `enum.RichEnum`, making it easier to work with enums in JSON.
+## Installation
+
+Install the package via `go get`:
+```sh
+go get -u github.com/xybor-x/enum
+```
+
+## Quick start
+
+*Please refer [Usage](#usage) for further details.*
+
+In Go, `iota` is a special identifier used to create incrementing constants, making it perfect for defining enums.
+
+```go
+type role any
+type Role = enum.RichEnum[role]
+
+const (
+	RoleUser Role = iota
+	RoleAdmin
+)
+
+func init() {
+	enum.Map(RoleUser, "user")
+	enum.Map(RoleAdmin, "admin")
+}
+
+func main() {
+    data, _ := json.Marshal(RoleUser) // Output: "user"
+    fmt.Println(RoleAdmin.IsValid())  // Output: true
+}
+```
 
 ## Usage
 
-### Define enum using `enum.New`
+### Define enum
+
+#### Short definition (variable enums)
 
 The `enum.New` function allows dynamic initialization of enum values and maps them to a string representation.
 
@@ -24,14 +56,12 @@ The `enum.New` function allows dynamic initialization of enum values and maps th
 type Role int
 
 var (
-    RoleUser  = enum.New[Role]("user")  // Dynamically creates and maps "user"
-    RoleAdmin = enum.New[Role]("admin") // Dynamically creates and maps "admin"
+    RoleUser  = enum.New[Role]("user")
+    RoleAdmin = enum.New[Role]("admin")
 )
 ```
 
-### Define enum using `enum.Map`
-
-The `enum.Map` function supports defining constant enums and is fully compatible with Go's standard enum patterns.
+#### Full definition (constant enums)
 
 ``` go
 type Role int
@@ -41,36 +71,62 @@ const (
     RoleAdmin
 )
 
-var (
-    _ = enum.Map(RoleUser, "user")   // Maps RoleUser to "user"
-    _ = enum.Map(RoleAdmin, "admin") // Maps RoleAdmin to "admin"
-)
+func init() {
+    enum.Map(RoleUser, "user")   // Maps RoleUser to "user"
+    enum.Map(RoleAdmin, "admin") // Maps RoleAdmin to "admin"
+}
 ```
 
-With `enum.Map`, you can associate string values with constants, making them easier to work with in serialization or user-facing output.
+### Utility functions
 
-### Rich Enum
-
-`enum.RichEnum` is a struct with set of utility methods to simplify working with enums.
-
-It includes various helper functions for operations like serialization, deserialization, string conversion, and validation, making it easier to manage and manipulate enum values across your codebase.
+#### EnumOf
 
 ```go
-type unsafeRole any
-type Role = enum.RichEnum[unsafeRole] // NOTE: It must use type alias instead of type definition.
+role := enum.EnumOf[Role]("user")
+if enum.IsValid(role) {
+    fmt.Println("Enum representation:", role) // Output: RoleUser
+} else {
+    fmt.Println("Invalid enum")
+}
+```
+
+#### StringOf
+
+```go
+fmt.Println("String:", enum.StringOf(RoleAdmin)) // Output: "admin"
+```
+
+#### All
+
+```go
+for _, role := range enum.All[Role]() {
+    fmt.Println("Role:", enum.StringOf(role))
+}
+// Output:
+// Role: user
+// Role: admin
+```
+
+### Rich enum
+
+Extend functionality with `enum.RichEnum`, which implements `fmt.Stringer`, `json.Marshaler`, and `json.Unmarshaler`.
+
+```go
+type role any
+type Role = enum.RichEnum[role] // NOTE: It must use type alias instead of type definition.
 
 const (
     RoleUser Role = iota
     RoleAdmin
 )
 
-var (
-    _ = enum.Map(RoleUser, "user")   // Maps RoleUser to "user"
-    _ = enum.Map(RoleAdmin, "admin") // Maps RoleAdmin to "admin"
-)
+func init() {
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleAdmin, "admin")
+}
 
-data, err := json.Marshal(RoleUser)         // data = "user"
-fmt.Printf("%d\n", RoleAdmin)               // Output: 1
-fmt.Printf("%s\n", RoleAdmin)               // Output: admin
-fmt.Println(RoleAdmin.IsValid())            // Output: true
+func main() {
+    data, _ := json.Marshal(RoleUser) // Output: "user"
+    fmt.Println(RoleAdmin.IsValid())  // Output: true
+}
 ```
