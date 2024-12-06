@@ -20,7 +20,7 @@ go get -u github.com/xybor-x/enum
 
 ## Quick start
 
-*Please refer [Usage](./README.md#usage) for further details.*
+*Please refer [Usage](#usage) for further details.*
 
 In Go, `iota` is a special identifier used to create incrementing constants, making it perfect for defining enums.
 
