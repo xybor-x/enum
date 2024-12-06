@@ -51,9 +51,11 @@ With `enum.Map`, you can associate string values with constants, making them eas
 
 ### Rich Enum
 
-`enum.RichEnum` is a struct with set of utility methods to simplify working with enums.
+`enum.RichEnum` provides a struct with set of utility methods to simplify working with enums.
 
 It includes various helper functions for operations like serialization, deserialization, string conversion, and validation, making it easier to manage and manipulate enum values across your codebase.
+
+Please refer [example_test.go](./example_test.go) for detailed examples.
 
 ```go
 type unsafeRole any
@@ -69,8 +71,6 @@ var (
     _ = enum.Map(RoleAdmin, "admin") // Maps RoleAdmin to "admin"
 )
 
-data, err := json.Marshal(RoleUser)         // data = "user"
-fmt.Printf("%d\n", RoleAdmin)               // Output: 1
-fmt.Printf("%s\n", RoleAdmin)               // Output: admin
-fmt.Println(RoleAdmin.IsValid())            // Output: true
+data, err := json.Marshal(RoleUser) // data should be "user"
+fmt.Println(RoleAdmin)              // Output: "admin" (instead of 1)
 ```
