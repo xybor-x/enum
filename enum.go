@@ -18,9 +18,10 @@
 //	)
 //
 // Features:
-// - No code generation
-// - Supports constant enums
-// - Easy value conversions
+//   - No code generation
+//   - Supports constant enums
+//   - Easy value conversions
+//   - Support serialization
 package enum
 
 import (
