@@ -1,6 +1,7 @@
 package enum_test
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/xybor-x/enum"
@@ -10,21 +11,21 @@ func ExampleNew() {
 	type Role int
 
 	var (
-		RoleUser  = enum.New[Role]("user")  // Dynamically creates and maps "user"
-		RoleAdmin = enum.New[Role]("admin") // Dynamically creates and maps "admin"
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	fmt.Println("string repr of", RoleUser, "is", enum.StringOf(RoleUser))
-	fmt.Println("string repr of", RoleAdmin, "is", enum.StringOf(RoleAdmin))
+	fmt.Println("string repr of RoleUser:", enum.StringOf(RoleUser))
+	fmt.Println("string repr of RoleAdmin:", enum.StringOf(RoleAdmin))
 
-	fmt.Println("number repr of user is", enum.EnumOf[Role]("user"))
-	fmt.Println("number repr of admin is", enum.EnumOf[Role]("admin"))
+	fmt.Println("number repr of \"user\":", enum.EnumOf[Role]("user"))
+	fmt.Println("number repr of \"admin\":", enum.EnumOf[Role]("admin"))
 
 	// Output:
-	// string repr of 0 is user
-	// string repr of 1 is admin
-	// number repr of user is 0
-	// number repr of admin is 1
+	// string repr of RoleUser: user
+	// string repr of RoleAdmin: admin
+	// number repr of "user": 0
+	// number repr of "admin": 1
 }
 
 func ExampleMap() {
@@ -36,19 +37,46 @@ func ExampleMap() {
 	)
 
 	var (
-		_ = enum.Map(RoleUser, "user")   // Maps RoleUser to "user"
-		_ = enum.Map(RoleAdmin, "admin") // Maps RoleAdmin to "admin"
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
 	)
 
-	fmt.Println("string repr of", RoleUser, "is", enum.StringOf(RoleUser))
-	fmt.Println("string repr of", RoleAdmin, "is", enum.StringOf(RoleAdmin))
+	fmt.Println("string repr of RoleUser:", enum.StringOf(RoleUser))
+	fmt.Println("string repr of RoleAdmin:", enum.StringOf(RoleAdmin))
 
-	fmt.Println("number repr of user is", enum.EnumOf[Role]("user"))
-	fmt.Println("number repr of admin is", enum.EnumOf[Role]("admin"))
+	fmt.Println("number repr of \"user\":", enum.EnumOf[Role]("user"))
+	fmt.Println("number repr of \"admin\":", enum.EnumOf[Role]("admin"))
 
 	// Output:
-	// string repr of 0 is user
-	// string repr of 1 is admin
-	// number repr of user is 0
-	// number repr of admin is 1
+	// string repr of RoleUser: user
+	// string repr of RoleAdmin: admin
+	// number repr of "user": 0
+	// number repr of "admin": 1
+}
+
+func ExampleRichEnum() {
+	type unsafeRole any
+	type Role = enum.RichEnum[unsafeRole]
+
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
+
+	var (
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
+	)
+
+	data, _ := json.Marshal(RoleUser)
+	fmt.Println(string(data))
+	fmt.Printf("%d\n", RoleAdmin)
+	fmt.Printf("%s\n", RoleAdmin)
+	fmt.Println(RoleAdmin.IsValid())
+
+	// Output:
+	// "user"
+	// 1
+	// admin
+	// true
 }

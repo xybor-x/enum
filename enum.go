@@ -24,23 +24,27 @@
 package enum
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"reflect"
+	"strings"
 )
+
+const UndefinedValue = math.MaxInt32
+const UndefinedString = "<<undefined>>"
 
 var id2StrMap = make(map[any]map[int]string)
 var str2EnumMap = make(map[any]map[string]int)
 
-func getAvaiableID[T ~int]() T {
-	undefined := UndefinedOf[T]()
-	if _, ok := id2StrMap[undefined]; !ok {
+func getAvaiableEnumValue[T ~int]() T {
+	if _, ok := id2StrMap[key[T]()]; !ok {
 		return 0
 	}
 
 	id := 0
 	for {
-		if _, ok := id2StrMap[undefined][id]; !ok {
+		if _, ok := id2StrMap[key[T]()][id]; !ok {
 			break
 		}
 		id++
@@ -49,8 +53,8 @@ func getAvaiableID[T ~int]() T {
 	return T(id)
 }
 
-func UndefinedOf[T ~int]() T {
-	return math.MaxInt32
+func key[T ~int]() T {
+	return 0
 }
 
 // New creates a dynamic enum value and maps it to a string representation.
@@ -73,9 +77,9 @@ func UndefinedOf[T ~int]() T {
 //     need a constant enum, declare it explicitly and use enum.Map() instead.
 //   - This method is not thread-safe and should only be called during
 //     initialization or other safe execution points to avoid race conditions.
-func New[T ~int](val string) T {
-	e := getAvaiableID[T]()
-	return Map(e, val)
+func New[T ~int](s string) T {
+	e := getAvaiableEnumValue[T]()
+	return Map(e, s)
 }
 
 // Map associates an enum constant with a string representation.
@@ -103,34 +107,36 @@ func New[T ~int](val string) T {
 //
 // Note that this method is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
-func Map[T ~int](enum T, val string) T {
-	undefined := UndefinedOf[T]()
-	if _, ok := id2StrMap[undefined]; !ok {
-		id2StrMap[undefined] = make(map[int]string)
-		str2EnumMap[undefined] = make(map[string]int)
+func Map[T ~int](value T, s string) T {
+	if value == UndefinedValue {
+		panic("the enum value is too large")
 	}
 
-	if StringOf(enum) != StringOf(undefined) {
+	if _, ok := id2StrMap[key[T]()]; !ok {
+		id2StrMap[key[T]()] = make(map[int]string)
+		str2EnumMap[key[T]()] = make(map[string]int)
+	}
+
+	if !strings.HasSuffix(StringOf(value), UndefinedString) {
 		panic("do not map a mapped enum")
 	}
 
-	id2StrMap[undefined][int(enum)] = val
-	str2EnumMap[undefined][val] = int(enum)
+	id2StrMap[key[T]()][int(value)] = s
+	str2EnumMap[key[T]()][s] = int(value)
 
-	return enum
+	return value
 }
 
 // EnumOf returns the corresponding enum for a given string representation.
 func EnumOf[T ~int](s string) T {
-	undefined := UndefinedOf[T]()
-	enum, ok := str2EnumMap[undefined]
+	enum, ok := str2EnumMap[key[T]()]
 	if !ok {
-		return undefined
+		return UndefinedValue
 	}
 
 	enumValue, ok := enum[s]
 	if !ok {
-		return undefined
+		return UndefinedValue
 	}
 
 	return T(enumValue)
@@ -139,8 +145,7 @@ func EnumOf[T ~int](s string) T {
 // MustEnumOf returns the corresponding enum for a given string representation.
 // It panics if the string does not correspond to a valid enum value.
 func MustEnumOf[T ~int](s string) T {
-	undefined := UndefinedOf[T]()
-	enum, ok := str2EnumMap[undefined]
+	enum, ok := str2EnumMap[key[T]()]
 	if !ok {
 		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeFor[T]().Name()))
 	}
@@ -154,17 +159,15 @@ func MustEnumOf[T ~int](s string) T {
 }
 
 // StringOf returns the string representation of an enum value.
-func StringOf[T ~int](id T) string {
-	t := UndefinedOf[T]()
-
-	enum, ok := id2StrMap[t]
+func StringOf[T ~int](value T) string {
+	enum, ok := id2StrMap[key[T]()]
 	if !ok {
-		return fmt.Sprintf("%s::<<undefined>>", reflect.TypeOf(t).Name())
+		return fmt.Sprintf("%s::%s", reflect.TypeFor[T]().Name(), UndefinedString)
 	}
 
-	enumNumber, ok := enum[int(id)]
+	enumNumber, ok := enum[int(value)]
 	if !ok {
-		return fmt.Sprintf("%s::<<undefined>>", reflect.TypeOf(t).Name())
+		return fmt.Sprintf("%s::%s", reflect.TypeFor[T]().Name(), UndefinedString)
 	}
 
 	return enumNumber
@@ -172,18 +175,89 @@ func StringOf[T ~int](id T) string {
 
 // MustStringOf returns the string representation of an enum value.
 // It panics if the enum value is invalid.
-func MustStringOf[T ~int](id T) string {
-	t := UndefinedOf[T]()
-
-	enum, ok := id2StrMap[t]
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeFor[T]().Name()))
+func MustStringOf[T ~int](value T) string {
+	str := StringOf(value)
+	if strings.HasSuffix(str, UndefinedString) {
+		panic(fmt.Sprintf("enum %s: invalid value %d", reflect.TypeFor[T]().Name(), value))
 	}
 
-	enumNumber, ok := enum[int(id)]
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid %d", reflect.TypeFor[T]().Name(), id))
+	return str
+}
+
+// IsValid checks if an enum value is valid.
+// It returns true if the enum value is valid, and false otherwise.
+func IsValid[T ~int](value T) bool {
+	if value == UndefinedValue {
+		return false
 	}
 
-	return enumNumber
+	enum, ok := id2StrMap[key[T]()]
+	if !ok {
+		return false
+	}
+
+	_, ok = enum[int(value)]
+	return ok
+}
+
+// MarshalJSON serializes an enum value into its string representation.
+// This utility function takes an enum value and converts it into a JSON byte
+// slice, representing the enum as a string instead of a numeric value.
+//
+// Example:
+//
+//	role := RoleAdmin
+//	data, _ := MarshalJSON(role)  // Result: []byte(`"admin"`)
+func MarshalJSON[T ~int](value T) ([]byte, error) {
+	if !IsValid(value) {
+		return nil, fmt.Errorf("unknown %s: %d", reflect.TypeFor[T]().Name(), value)
+	}
+
+	return json.Marshal(StringOf(value))
+}
+
+// UnmarshalJSON deserializes a string representation of an enum value from
+// JSON. This utility function takes a byte slice of JSON data and converts it
+// into the corresponding enum value.
+//
+// Example:
+//
+//	data := []byte(`"admin"`)
+//	var role Role
+//	_ := UnmarshalJSON(&role, data)  // role will be set to RoleAdmin
+func UnmarshalJSON[T ~int](data []byte, t *T) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return err
+	}
+
+	enum := EnumOf[T](str)
+	if !IsValid(enum) {
+		return fmt.Errorf("unknown %s string: %s", reflect.TypeFor[T]().Name(), str)
+	}
+
+	*t = enum
+	return nil
+}
+
+// All returns a slice containing all enum values of a specific type.
+//
+// This function iterates over all defined constants of the given enum type and
+// returns them as a slice, enabling easy access to the complete set of enum values.
+//
+// Example usage:
+//
+//	roles := All[Role]() // roles = []Role{RoleAdmin, RoleUser}
+func All[T ~int]() []T {
+	enum, ok := id2StrMap[key[T]()]
+	if !ok {
+		return nil
+	}
+
+	var result []T
+	for k := range enum {
+		result = append(result, T(k))
+	}
+
+	return result
 }

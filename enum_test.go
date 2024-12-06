@@ -1,6 +1,7 @@
 package enum_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -63,7 +64,14 @@ func Test_Enum_Map_Duplicated(t *testing.T) {
 	assert.Panics(t, func() { enum.Map(RoleAdmin, "admin") })
 }
 
-func Test_Enum_String(t *testing.T) {
+func Test_Enum_Map_Undefined(t *testing.T) {
+	type Role int
+	const RoleUser = math.MaxInt32
+
+	assert.Panics(t, func() { enum.Map(RoleUser, "admin") })
+}
+
+func Test_Enum_StringOf(t *testing.T) {
 	type Role int
 
 	var (
@@ -73,6 +81,21 @@ func Test_Enum_String(t *testing.T) {
 
 	assert.Equal(t, enum.StringOf(RoleUser), "user")
 	assert.Equal(t, enum.StringOf(RoleAdmin), "admin")
+	assert.Equal(t, enum.StringOf(Role(2)), "Role::<<undefined>>")
+}
+
+func Test_Enum_MustStringOf(t *testing.T) {
+	type Role int
+
+	assert.Panics(t, func() { enum.MustStringOf(Role(0)) })
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, enum.MustStringOf(RoleUser), "user")
+	assert.Equal(t, enum.MustStringOf(RoleAdmin), "admin")
+	assert.Panics(t, func() { enum.MustStringOf(Role(2)) })
 }
 
 func Test_Enum_EnumOf(t *testing.T) {
@@ -85,6 +108,22 @@ func Test_Enum_EnumOf(t *testing.T) {
 
 	assert.Equal(t, enum.EnumOf[Role]("user"), RoleUser)
 	assert.Equal(t, enum.EnumOf[Role]("admin"), RoleAdmin)
+	assert.False(t, enum.IsValid(enum.EnumOf[Role]("moderator")))
+}
+
+func Test_Enum_MustEnumOf(t *testing.T) {
+	type Role int
+
+	assert.Panics(t, func() { enum.MustEnumOf[Role]("moderator") })
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, enum.MustEnumOf[Role]("user"), RoleUser)
+	assert.Equal(t, enum.MustEnumOf[Role]("admin"), RoleAdmin)
+	assert.Panics(t, func() { enum.MustEnumOf[Role]("moderator") })
 }
 
 func Test_Enum_Undefined(t *testing.T) {
@@ -98,12 +137,68 @@ func Test_Enum_Undefined(t *testing.T) {
 	moderator := enum.EnumOf[Role]("moderator")
 	assert.NotEqual(t, moderator, RoleUser)
 	assert.NotEqual(t, moderator, RoleAdmin)
-	assert.Equal(t, enum.StringOf(moderator), "Role::<<undefined>>")
+
+	assert.True(t, enum.IsValid(RoleUser))
+	assert.True(t, enum.IsValid(RoleAdmin))
+	assert.False(t, enum.IsValid(moderator))
 }
 
 func Test_Enum_UndefinedEnum(t *testing.T) {
 	type Role int
 
 	moderator := enum.EnumOf[Role]("moderator")
-	assert.Equal(t, enum.StringOf(moderator), "Role::<<undefined>>")
+	assert.False(t, enum.IsValid(moderator))
+	assert.False(t, enum.IsValid(Role(0)))
+}
+
+func Test_Enum_MarshalJSON(t *testing.T) {
+	type Role int
+
+	var (
+		RoleUser = enum.New[Role]("user")
+	)
+
+	data, err := enum.MarshalJSON(RoleUser)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(`"user"`), data)
+
+	_, err = enum.MarshalJSON(Role(1))
+	assert.ErrorContains(t, err, "unknown Role: 1")
+}
+
+func Test_Enum_UnmarshalJSON(t *testing.T) {
+	type Role int
+
+	var (
+		RoleUser = enum.New[Role]("user")
+	)
+
+	var data Role
+
+	err := enum.UnmarshalJSON([]byte(`"user"`), &data)
+	assert.NoError(t, err)
+	assert.Equal(t, RoleUser, data)
+
+	// Invalid data
+	err = enum.UnmarshalJSON([]byte(`user"`), &data)
+	assert.ErrorContains(t, err, "invalid character")
+
+	// Invalid enum
+	err = enum.UnmarshalJSON([]byte(`"admin"`), &data)
+	assert.ErrorContains(t, err, "unknown Role string: admin")
+}
+
+func Test_Enum_All(t *testing.T) {
+	type Role int
+
+	assert.Nil(t, enum.All[Role]())
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	all := enum.All[Role]()
+	assert.Contains(t, all, RoleUser)
+	assert.Contains(t, all, RoleAdmin)
 }
