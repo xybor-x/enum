@@ -1,7 +1,8 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/xybor-x/enum.svg)](https://pkg.go.dev/github.com/xybor-x/enum)
 
 # Enum
-A simple enum utility provided by Todennus.
+
+A enum library for Go.
 
 ## Features
 
