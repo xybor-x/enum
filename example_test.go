@@ -64,33 +64,19 @@ func ExampleRichEnum() {
 	)
 
 	var (
-		_ = enum.Map(RoleUser, "user")   // Maps RoleUser to "user"
-		_ = enum.Map(RoleAdmin, "admin") // Maps RoleAdmin to "admin"
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
 	)
 
-	fmt.Println("string repr of RoleUser:", RoleUser.String())
-	fmt.Println("string repr of RoleAdmin:", RoleAdmin.String())
-
-	fmt.Println("number repr of \"user\":", enum.EnumOf[Role]("user").Int())
-	fmt.Println("number repr of \"admin\":", enum.EnumOf[Role]("admin").Int())
-
-	data, err := json.Marshal(RoleUser)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("marshal RoleUser:", string(data))
-
-	var r Role
-	if err := json.Unmarshal([]byte(`"user"`), &r); err != nil {
-		panic(err)
-	}
-	fmt.Println("unmarshal \"user\":", r.Int())
+	data, _ := json.Marshal(RoleUser)
+	fmt.Println(string(data))
+	fmt.Printf("%d\n", RoleAdmin)
+	fmt.Printf("%s\n", RoleAdmin)
+	fmt.Println(RoleAdmin.IsValid())
 
 	// Output:
-	// string repr of RoleUser: user
-	// string repr of RoleAdmin: admin
-	// number repr of "user": 0
-	// number repr of "admin": 1
-	// marshal RoleUser: "user"
-	// unmarshal "user": 0
+	// "user"
+	// 1
+	// admin
+	// true
 }
