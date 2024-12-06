@@ -26,7 +26,7 @@ In Go, `iota` is a special identifier used to create incrementing constants, mak
 
 ```go
 type role any
-type Role = enum.RichEnum[role] // simply an alias of int rather than a struct
+type Role = enum.RichEnum[role]
 
 const (
 	RoleUser Role = iota
