@@ -197,3 +197,18 @@ func Test_Enum_All(t *testing.T) {
 	assert.Contains(t, all, RoleUser)
 	assert.Contains(t, all, RoleAdmin)
 }
+
+func Test_Enum_Non_Int(t *testing.T) {
+	type Role byte
+
+	assert.Nil(t, enum.All[Role]())
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	all := enum.All[Role]()
+	assert.Contains(t, all, RoleUser)
+	assert.Contains(t, all, RoleAdmin)
+}

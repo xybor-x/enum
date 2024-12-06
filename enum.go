@@ -34,7 +34,13 @@ const UndefinedString = "<<undefined>>"
 
 var enums = &mtmap{}
 
-func getAvailableEnumValue[T ~int]() T {
+type Enumable interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
+		~float32 | ~float64
+}
+
+func getAvailableEnumValue[T Enumable]() T {
 	id := 0
 	for {
 		if _, ok := get2(enums, key[T, string]{T(id)}); !ok {
@@ -66,7 +72,7 @@ func getAvailableEnumValue[T ~int]() T {
 //     need a constant enum, declare it explicitly and use enum.Map() instead.
 //   - This method is not thread-safe and should only be called during
 //     initialization or other safe execution points to avoid race conditions.
-func New[T ~int](s string) T {
+func New[T Enumable](s string) T {
 	e := getAvailableEnumValue[T]()
 	return Map(e, s)
 }
@@ -96,33 +102,33 @@ func New[T ~int](s string) T {
 //
 // Note that this method is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
-func Map[T ~int](value T, s string) T {
+func Map[T Enumable](value T, s string) T {
 	if !strings.HasSuffix(StringOf(value), UndefinedString) {
 		panic("do not map a mapped enum")
 	}
 
 	set(enums, key[T, string]{T(value)}, s)
 	set(enums, key[string, T]{s}, value)
-	allVals := get(enums, key[T, []T]{0})
+	allVals := get(enums, key[T, []T]{T(0)})
 	allVals = append(allVals, value)
-	set(enums, key[T, []T]{0}, allVals)
+	set(enums, key[T, []T]{T(0)}, allVals)
 
 	return value
 }
 
 // EnumOf returns the corresponding enum for a given string
 // representation, and whether it is valid.
-func EnumOf[T ~int](s string) (T, bool) {
+func EnumOf[T Enumable](s string) (T, bool) {
 	enum, ok := get2(enums, key[string, T]{s})
 	if !ok {
-		return 0, false
+		return T(0), false
 	}
 	return enum, true
 }
 
 // MustEnumOf returns the corresponding enum for a given string representation.
 // It panics if the string does not correspond to a valid enum value.
-func MustEnumOf[T ~int](s string) T {
+func MustEnumOf[T Enumable](s string) T {
 	enum, ok := get2(enums, key[string, T]{s})
 	if !ok {
 		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeFor[T]().Name()))
@@ -132,7 +138,7 @@ func MustEnumOf[T ~int](s string) T {
 }
 
 // StringOf returns the string representation of an enum value.
-func StringOf[T ~int](value T) string {
+func StringOf[T Enumable](value T) string {
 	enum, ok := get2(enums, key[T, string]{value})
 	if !ok {
 		return fmt.Sprintf("%s::%s", reflect.TypeFor[T]().Name(), UndefinedString)
@@ -142,10 +148,10 @@ func StringOf[T ~int](value T) string {
 
 // MustStringOf returns the string representation of an enum value.
 // It panics if the enum value is invalid.
-func MustStringOf[T ~int](value T) string {
+func MustStringOf[T Enumable](value T) string {
 	str := StringOf(value)
 	if strings.HasSuffix(str, UndefinedString) {
-		panic(fmt.Sprintf("enum %s: invalid value %d", reflect.TypeFor[T]().Name(), value))
+		panic(fmt.Sprintf("enum %s: invalid value %v", reflect.TypeFor[T]().Name(), value))
 	}
 
 	return str
@@ -153,7 +159,7 @@ func MustStringOf[T ~int](value T) string {
 
 // IsValid checks if an enum value is valid.
 // It returns true if the enum value is valid, and false otherwise.
-func IsValid[T ~int](value T) bool {
+func IsValid[T Enumable](value T) bool {
 	_, ok := get2(enums, key[T, string]{value})
 	return ok
 }
@@ -166,9 +172,9 @@ func IsValid[T ~int](value T) bool {
 //
 //	role := RoleAdmin
 //	data, _ := MarshalJSON(role)  // Result: []byte(`"admin"`)
-func MarshalJSON[T ~int](value T) ([]byte, error) {
+func MarshalJSON[T Enumable](value T) ([]byte, error) {
 	if !IsValid(value) {
-		return nil, fmt.Errorf("unknown %s: %d", reflect.TypeFor[T]().Name(), value)
+		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeFor[T]().Name(), value)
 	}
 
 	return json.Marshal(StringOf(value))
@@ -183,7 +189,7 @@ func MarshalJSON[T ~int](value T) ([]byte, error) {
 //	data := []byte(`"admin"`)
 //	var role Role
 //	_ := UnmarshalJSON(&role, data)  // role will be set to RoleAdmin
-func UnmarshalJSON[T ~int](data []byte, t *T) error {
+func UnmarshalJSON[T Enumable](data []byte, t *T) error {
 	var str string
 	if err := json.Unmarshal(data, &str); err != nil {
 		return err
@@ -206,6 +212,6 @@ func UnmarshalJSON[T ~int](data []byte, t *T) error {
 // Example usage:
 //
 //	roles := All[Role]() // roles = []Role{RoleAdmin, RoleUser}
-func All[T ~int]() []T {
-	return get(enums, key[T, []T]{0})
+func All[T Enumable]() []T {
+	return get(enums, key[T, []T]{T(0)})
 }
