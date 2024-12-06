@@ -51,7 +51,7 @@ With `enum.Map`, you can associate string values with constants, making them eas
 
 ### Rich Enum
 
-`enum.RichEnum` provides a struct with set of utility methods to simplify working with enums.
+`enum.RichEnum` is a struct with set of utility methods to simplify working with enums.
 
 It includes various helper functions for operations like serialization, deserialization, string conversion, and validation, making it easier to manage and manipulate enum values across your codebase.
 
