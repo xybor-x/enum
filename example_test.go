@@ -18,8 +18,10 @@ func ExampleNew() {
 	fmt.Println("string repr of RoleUser:", enum.StringOf(RoleUser))
 	fmt.Println("string repr of RoleAdmin:", enum.StringOf(RoleAdmin))
 
-	fmt.Println("number repr of \"user\":", enum.EnumOf[Role]("user"))
-	fmt.Println("number repr of \"admin\":", enum.EnumOf[Role]("admin"))
+	num, _ := enum.EnumOf[Role]("user")
+	fmt.Println("number repr of \"user\":", num)
+	num, _ = enum.EnumOf[Role]("admin")
+	fmt.Println("number repr of \"admin\":", num)
 
 	// Output:
 	// string repr of RoleUser: user
@@ -44,8 +46,10 @@ func ExampleMap() {
 	fmt.Println("string repr of RoleUser:", enum.StringOf(RoleUser))
 	fmt.Println("string repr of RoleAdmin:", enum.StringOf(RoleAdmin))
 
-	fmt.Println("number repr of \"user\":", enum.EnumOf[Role]("user"))
-	fmt.Println("number repr of \"admin\":", enum.EnumOf[Role]("admin"))
+	num, _ := enum.EnumOf[Role]("user")
+	fmt.Println("number repr of \"user\":", num)
+	num, _ = enum.EnumOf[Role]("admin")
+	fmt.Println("number repr of \"admin\":", num)
 
 	// Output:
 	// string repr of RoleUser: user

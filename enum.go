@@ -26,35 +26,24 @@ package enum
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"reflect"
 	"strings"
 )
 
-const UndefinedValue = math.MaxInt32
 const UndefinedString = "<<undefined>>"
 
-var id2StrMap = make(map[any]map[int]string)
-var str2EnumMap = make(map[any]map[string]int)
+var enums = &mtmap{}
 
-func getAvaiableEnumValue[T ~int]() T {
-	if _, ok := id2StrMap[key[T]()]; !ok {
-		return 0
-	}
-
+func getAvailableEnumValue[T ~int]() T {
 	id := 0
 	for {
-		if _, ok := id2StrMap[key[T]()][id]; !ok {
+		if _, ok := get2(enums, key[T, string]{T(id)}); !ok {
 			break
 		}
 		id++
 	}
 
 	return T(id)
-}
-
-func key[T ~int]() T {
-	return 0
 }
 
 // New creates a dynamic enum value and maps it to a string representation.
@@ -78,7 +67,7 @@ func key[T ~int]() T {
 //   - This method is not thread-safe and should only be called during
 //     initialization or other safe execution points to avoid race conditions.
 func New[T ~int](s string) T {
-	e := getAvaiableEnumValue[T]()
+	e := getAvailableEnumValue[T]()
 	return Map(e, s)
 }
 
@@ -108,69 +97,47 @@ func New[T ~int](s string) T {
 // Note that this method is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
 func Map[T ~int](value T, s string) T {
-	if value == UndefinedValue {
-		panic("the enum value is too large")
-	}
-
-	if _, ok := id2StrMap[key[T]()]; !ok {
-		id2StrMap[key[T]()] = make(map[int]string)
-		str2EnumMap[key[T]()] = make(map[string]int)
-	}
-
 	if !strings.HasSuffix(StringOf(value), UndefinedString) {
 		panic("do not map a mapped enum")
 	}
 
-	id2StrMap[key[T]()][int(value)] = s
-	str2EnumMap[key[T]()][s] = int(value)
+	set(enums, key[T, string]{T(value)}, s)
+	set(enums, key[string, T]{s}, value)
+	allVals := get(enums, key[T, []T]{0})
+	allVals = append(allVals, value)
+	set(enums, key[T, []T]{0}, allVals)
 
 	return value
 }
 
-// EnumOf returns the corresponding enum for a given string representation.
-func EnumOf[T ~int](s string) T {
-	enum, ok := str2EnumMap[key[T]()]
+// EnumOf returns the corresponding enum for a given string
+// representation, and whether it is valid.
+func EnumOf[T ~int](s string) (T, bool) {
+	enum, ok := get2(enums, key[string, T]{s})
 	if !ok {
-		return UndefinedValue
+		return 0, false
 	}
-
-	enumValue, ok := enum[s]
-	if !ok {
-		return UndefinedValue
-	}
-
-	return T(enumValue)
+	return enum, true
 }
 
 // MustEnumOf returns the corresponding enum for a given string representation.
 // It panics if the string does not correspond to a valid enum value.
 func MustEnumOf[T ~int](s string) T {
-	enum, ok := str2EnumMap[key[T]()]
+	enum, ok := get2(enums, key[string, T]{s})
 	if !ok {
 		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeFor[T]().Name()))
 	}
 
-	enumValue, ok := enum[s]
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid string representation %s", reflect.TypeFor[T]().Name(), s))
-	}
-
-	return T(enumValue)
+	return enum
 }
 
 // StringOf returns the string representation of an enum value.
 func StringOf[T ~int](value T) string {
-	enum, ok := id2StrMap[key[T]()]
+	enum, ok := get2(enums, key[T, string]{value})
 	if !ok {
 		return fmt.Sprintf("%s::%s", reflect.TypeFor[T]().Name(), UndefinedString)
 	}
-
-	enumNumber, ok := enum[int(value)]
-	if !ok {
-		return fmt.Sprintf("%s::%s", reflect.TypeFor[T]().Name(), UndefinedString)
-	}
-
-	return enumNumber
+	return enum
 }
 
 // MustStringOf returns the string representation of an enum value.
@@ -187,16 +154,7 @@ func MustStringOf[T ~int](value T) string {
 // IsValid checks if an enum value is valid.
 // It returns true if the enum value is valid, and false otherwise.
 func IsValid[T ~int](value T) bool {
-	if value == UndefinedValue {
-		return false
-	}
-
-	enum, ok := id2StrMap[key[T]()]
-	if !ok {
-		return false
-	}
-
-	_, ok = enum[int(value)]
+	_, ok := get2(enums, key[T, string]{value})
 	return ok
 }
 
@@ -231,8 +189,8 @@ func UnmarshalJSON[T ~int](data []byte, t *T) error {
 		return err
 	}
 
-	enum := EnumOf[T](str)
-	if !IsValid(enum) {
+	enum, valid := EnumOf[T](str)
+	if !valid {
 		return fmt.Errorf("unknown %s string: %s", reflect.TypeFor[T]().Name(), str)
 	}
 
@@ -249,15 +207,5 @@ func UnmarshalJSON[T ~int](data []byte, t *T) error {
 //
 //	roles := All[Role]() // roles = []Role{RoleAdmin, RoleUser}
 func All[T ~int]() []T {
-	enum, ok := id2StrMap[key[T]()]
-	if !ok {
-		return nil
-	}
-
-	var result []T
-	for k := range enum {
-		result = append(result, T(k))
-	}
-
-	return result
+	return get(enums, key[T, []T]{0})
 }
