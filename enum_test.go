@@ -129,12 +129,11 @@ func Test_Enum_Undefined(t *testing.T) {
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	moderator, _ := enum.EnumOf[Role]("moderator")
-	//assert.NotEqual(t, moderator, RoleUser)
-	assert.NotEqual(t, moderator, RoleAdmin)
-
 	assert.True(t, enum.IsValid(RoleUser))
 	assert.True(t, enum.IsValid(RoleAdmin))
+
+	_, ok := enum.EnumOf[Role]("moderator")
+	assert.False(t, ok)
 	// assert.False(t, enum.IsValid(moderator))
 }
 
