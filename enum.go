@@ -105,37 +105,54 @@ func New[T enumable](s string) T {
 // Note that this method is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
 func Map[T enumable](value T, s string) T {
-	if !strings.HasSuffix(StringOf(value), UndefinedString) {
+	if !strings.HasSuffix(ToString(value), UndefinedString) {
 		panic("do not map a mapped enum")
 	}
 
-	if _, ok := EnumOf[T](s); ok {
+	if _, ok := FromString[T](s); ok {
 		panic("do not map a mapped string")
 	}
 
 	set(enums, key[T, string]{T(value)}, s)
 	set(enums, key[string, T]{s}, value)
-	allVals := get(enums, key[T, []T]{T(0)})
+	allVals := get(enums, key[T, []T]{})
 	allVals = append(allVals, value)
-	set(enums, key[T, []T]{T(0)}, allVals)
+	set(enums, key[T, []T]{}, allVals)
 
 	return value
 }
 
-// EnumOf returns the corresponding enum for a given string
-// representation, and whether it is valid.
-func EnumOf[T enumable](s string) (T, bool) {
-	enum, ok := get2(enums, key[string, T]{s})
-	if !ok {
-		return T(0), false
-	}
-	return enum, true
+// FromInt returns the corresponding enum for a given int representation, and
+// whether it is valid.
+func FromInt[T enumable](i int) (T, bool) {
+	t := T(i)
+	return t, IsValid(t)
 }
 
-// MustEnumOf returns the corresponding enum for a given string representation.
+// MustFromInt returns the corresponding enum for a given int representation.
+//
+// It panics if the enum value is invalid.
+func MustFromInt[T enumable](i int) T {
+	t, ok := FromInt[T](i)
+	if !ok {
+		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeOf(T(0)).Name()))
+	}
+
+	return t
+}
+
+// FromString returns the corresponding enum for a given string representation,
+// and whether it is valid.
+func FromString[T enumable](s string) (T, bool) {
+	return get2(enums, key[string, T]{s})
+}
+
+// MustFromString returns the corresponding enum for a given string
+// representation.
+//
 // It panics if the string does not correspond to a valid enum value.
-func MustEnumOf[T enumable](s string) T {
-	enum, ok := get2(enums, key[string, T]{s})
+func MustFromString[T enumable](s string) T {
+	enum, ok := FromString[T](s)
 	if !ok {
 		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeOf(T(0)).Name()))
 	}
@@ -143,19 +160,23 @@ func MustEnumOf[T enumable](s string) T {
 	return enum
 }
 
-// StringOf returns the string representation of an enum value.
-func StringOf[T enumable](value T) string {
-	enum, ok := get2(enums, key[T, string]{value})
+// ToString returns the string representation of the given enum value.
+//
+// If the enum value is invalid, the returned string is formatted as:
+// "EnumType::<<undefined>>".
+func ToString[T enumable](value T) string {
+	str, ok := get2(enums, key[T, string]{value})
 	if !ok {
 		return fmt.Sprintf("%s::%s", reflect.TypeOf(T(0)).Name(), UndefinedString)
 	}
-	return enum
+	return str
 }
 
-// MustStringOf returns the string representation of an enum value.
+// MustToString returns the string representation of the given enum value.
+//
 // It panics if the enum value is invalid.
-func MustStringOf[T enumable](value T) string {
-	str := StringOf(value)
+func MustToString[T enumable](value T) string {
+	str := ToString(value)
 	if strings.HasSuffix(str, UndefinedString) {
 		panic(fmt.Sprintf("enum %s: invalid value %v", reflect.TypeOf(T(0)).Name(), value))
 	}
@@ -176,7 +197,7 @@ func MarshalJSON[T enumable](value T) ([]byte, error) {
 		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeOf(T(0)).Name(), value)
 	}
 
-	return json.Marshal(StringOf(value))
+	return json.Marshal(ToString(value))
 }
 
 // UnmarshalJSON deserializes a string representation of an enum value from
@@ -187,8 +208,8 @@ func UnmarshalJSON[T enumable](data []byte, t *T) error {
 		return err
 	}
 
-	enum, valid := EnumOf[T](str)
-	if !valid {
+	enum, ok := FromString[T](str)
+	if !ok {
 		return fmt.Errorf("unknown %s string: %s", reflect.TypeOf(T(0)).Name(), str)
 	}
 
@@ -202,7 +223,7 @@ func ValueSQL[T enumable](value T) (driver.Value, error) {
 		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeOf(T(0)).Name(), value)
 	}
 
-	return StringOf(value), nil
+	return ToString(value), nil
 }
 
 // ScanSQL deserializes a database value into an enum type.
@@ -217,7 +238,7 @@ func ScanSQL[T enumable](a any, value *T) error {
 		return fmt.Errorf("not support type %T", a)
 	}
 
-	enum, ok := EnumOf[T](data)
+	enum, ok := FromString[T](data)
 	if !ok {
 		return fmt.Errorf("unknown %s string: %s", reflect.TypeOf(T(0)).Name(), data)
 	}
@@ -236,5 +257,5 @@ func ScanSQL[T enumable](a any, value *T) error {
 //
 //	roles := All[Role]() // roles = []Role{RoleAdmin, RoleUser}
 func All[T enumable]() []T {
-	return get(enums, key[T, []T]{T(0)})
+	return get(enums, key[T, []T]{})
 }

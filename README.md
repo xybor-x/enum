@@ -7,7 +7,7 @@
 `xybor-x/enum` makes working with enums in Go intuitive and efficient by providing:
 - Seamless enum-string mappings.
 - Constant enums compatible with Go's `iota` conventions.
-- Utility functions for JSON serialization and deserialization.
+- Out of the box JSON/SQL serialization and deserialization.
 - Rich utilities for enhanced enum handling.
 
 
@@ -52,7 +52,7 @@ func main() {
 
 ### Define enum
 
-**Note**: Enum definitions are not thread-safe. Therefore, they should be finalized during initialization (at the global scope).
+**Note**: Enum definitions are *NOT thread-safe*. Therefore, they should be finalized during initialization (at the global scope).
 
 #### Short definition (variable enums)
 
@@ -83,10 +83,12 @@ func init() {
 
 ### Utility functions
 
-#### EnumOf
+#### FromString
+
+Convert a `string` value to an `enum` type and check if it's valid.
 
 ```go
-role, ok := enum.EnumOf[Role]("user")
+role, ok := enum.FromString[Role]("user")
 if ok {
     fmt.Println("Enum representation:", role) // Output: 0
 } else {
@@ -94,10 +96,26 @@ if ok {
 }
 ```
 
-#### StringOf
+#### FromInt
+
+Convert an `int` value to an `enum` type and check if it's valid.
 
 ```go
-fmt.Println("String:", enum.StringOf(RoleAdmin)) // Output: "admin"
+role, ok := enum.FromInt[Role](42)
+if ok {
+    fmt.Println("Enum representation:", role)
+} else {
+    fmt.Println("Invalid enum") // Output: Invalid enum
+}
+```
+
+#### ToString
+
+Convert an `enum` to string.
+
+```go
+fmt.Println("String:", enum.ToString(RoleAdmin))  // Output: "admin"
+fmt.Println("String:", enum.ToString(Role(42)))   // Output: "Role::<<undefined>>"
 ```
 
 #### IsValid
@@ -112,7 +130,7 @@ fmt.Println(enum.IsValid(Role(3)))  // false
 
 ```go
 for _, role := range enum.All[Role]() {
-    fmt.Println("Role:", enum.StringOf(role))
+    fmt.Println("Role:", enum.ToString(role))
 }
 // Output:
 // Role: user
@@ -121,7 +139,7 @@ for _, role := range enum.All[Role]() {
 
 ### Rich enum
 
-Instead of defining your enum type as `int`, you can use `enum.RichEnum` (an `int` alias) to leverage several convenient features:
+Instead of defining your enum type as `int`, you can use `enum.RichEnum` (also an `int` alias) to leverage several convenient features:
 - Interact with enums using methods instead of standalone functions.
 - Built-in support for serialization and deserialization (JSON and SQL).
 

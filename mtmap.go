@@ -5,7 +5,7 @@ type mtmap struct {
 }
 
 type keyI[T any] interface {
-	getValue() T
+	underlyingkey() T
 }
 
 func get2[V any](m *mtmap, key keyI[V]) (V, bool) {
@@ -13,6 +13,7 @@ func get2[V any](m *mtmap, key keyI[V]) (V, bool) {
 	if m.data == nil {
 		return zero, false
 	}
+
 	val, exists := m.data[key]
 	if !exists {
 		return zero, false
@@ -48,9 +49,9 @@ func set[V any](m *mtmap, key keyI[V], val V) {
 	m.data[key] = val
 }
 
-type key[Key any, Value any] struct {
-	key Key
+type key[K, V any] struct {
+	key K
 }
 
-// this is not called, but it implements the type restriction
-func (k key[K, V]) getValue() (val V) { return }
+// this is not called, but it implements the type asseertion.
+func (k key[K, V]) underlyingkey() (val V) { return }
