@@ -25,7 +25,7 @@ go get -u github.com/xybor-x/enum
 
 In Go, `iota` is a special identifier used to create incrementing constants, making it perfect for defining enums.
 
-`xybor-x/enum` is fully compatible with iota-based enums.
+`xybor-x/enum` is fully compatible with `iota`-based enums.
 
 ```go
 type role any
