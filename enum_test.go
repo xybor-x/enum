@@ -134,7 +134,6 @@ func Test_Enum_Undefined(t *testing.T) {
 
 	_, ok := enum.EnumOf[Role]("moderator")
 	assert.False(t, ok)
-	// assert.False(t, enum.IsValid(moderator))
 }
 
 func Test_Enum_UndefinedEnum(t *testing.T) {
