@@ -40,16 +40,16 @@ func TestMap(t *testing.T) {
 		RoleAdmin
 	)
 
-	assert.Equal(t, enum.StringOf(RoleUser), "Role::<<undefined>>")
-	assert.Equal(t, enum.StringOf(RoleAdmin), "Role::<<undefined>>")
+	assert.Equal(t, enum.ToString(RoleUser), "Role::<<undefined>>")
+	assert.Equal(t, enum.ToString(RoleAdmin), "Role::<<undefined>>")
 
 	var (
 		_ = enum.Map(RoleUser, "user")
 		_ = enum.Map(RoleAdmin, "admin")
 	)
 
-	assert.Equal(t, enum.StringOf(RoleUser), "user")
-	assert.Equal(t, enum.StringOf(RoleAdmin), "admin")
+	assert.Equal(t, enum.ToString(RoleUser), "user")
+	assert.Equal(t, enum.ToString(RoleAdmin), "admin")
 }
 
 func TestMapDuplicated(t *testing.T) {
@@ -63,12 +63,12 @@ func TestMapDuplicated(t *testing.T) {
 		RoleAdmin Role = iota
 	)
 
-	assert.Equal(t, enum.StringOf(RoleUser), "user")
+	assert.Equal(t, enum.ToString(RoleUser), "user")
 	assert.Panics(t, func() { enum.Map(RoleAdmin, "admin") })
 	assert.Panics(t, func() { enum.Map(Role(1), "user") })
 }
 
-func TestStringOf(t *testing.T) {
+func TestToString(t *testing.T) {
 	type Role int
 
 	var (
@@ -76,26 +76,26 @@ func TestStringOf(t *testing.T) {
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	assert.Equal(t, enum.StringOf(RoleUser), "user")
-	assert.Equal(t, enum.StringOf(RoleAdmin), "admin")
-	assert.Equal(t, enum.StringOf(Role(2)), "Role::<<undefined>>")
+	assert.Equal(t, enum.ToString(RoleUser), "user")
+	assert.Equal(t, enum.ToString(RoleAdmin), "admin")
+	assert.Equal(t, enum.ToString(Role(2)), "Role::<<undefined>>")
 }
 
-func TestMustStringOf(t *testing.T) {
+func TestMustToString(t *testing.T) {
 	type Role int
 
-	assert.Panics(t, func() { enum.MustStringOf(Role(0)) })
+	assert.Panics(t, func() { enum.MustToString(Role(0)) })
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	assert.Equal(t, enum.MustStringOf(RoleUser), "user")
-	assert.Equal(t, enum.MustStringOf(RoleAdmin), "admin")
-	assert.Panics(t, func() { enum.MustStringOf(Role(2)) })
+	assert.Equal(t, enum.MustToString(RoleUser), "user")
+	assert.Equal(t, enum.MustToString(RoleAdmin), "admin")
+	assert.Panics(t, func() { enum.MustToString(Role(2)) })
 }
 
-func TestEnumOf(t *testing.T) {
+func TestFromString(t *testing.T) {
 	type Role int
 
 	var (
@@ -103,27 +103,62 @@ func TestEnumOf(t *testing.T) {
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	userRole, _ := enum.EnumOf[Role]("user")
+	userRole, _ := enum.FromString[Role]("user")
 	assert.Equal(t, userRole, RoleUser)
-	adminRole, _ := enum.EnumOf[Role]("admin")
+	adminRole, _ := enum.FromString[Role]("admin")
 	assert.Equal(t, adminRole, RoleAdmin)
-	_, valid := enum.EnumOf[Role]("moderator")
+	_, valid := enum.FromString[Role]("moderator")
 	assert.False(t, valid)
 }
 
-func TestMustEnumOf(t *testing.T) {
+func TestMustFromString(t *testing.T) {
 	type Role int
 
-	assert.Panics(t, func() { enum.MustEnumOf[Role]("moderator") })
+	assert.Panics(t, func() { enum.MustFromString[Role]("moderator") })
 
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	assert.Equal(t, enum.MustEnumOf[Role]("user"), RoleUser)
-	assert.Equal(t, enum.MustEnumOf[Role]("admin"), RoleAdmin)
-	assert.Panics(t, func() { enum.MustEnumOf[Role]("moderator") })
+	assert.Equal(t, enum.MustFromString[Role]("user"), RoleUser)
+	assert.Equal(t, enum.MustFromString[Role]("admin"), RoleAdmin)
+	assert.Panics(t, func() { enum.MustFromString[Role]("moderator") })
+}
+
+func TestFromInt(t *testing.T) {
+	type Role int
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	userRole, ok := enum.FromInt[Role](0)
+	assert.True(t, ok)
+	assert.Equal(t, userRole, RoleUser)
+
+	adminRole, ok := enum.FromInt[Role](1)
+	assert.True(t, ok)
+	assert.Equal(t, adminRole, RoleAdmin)
+
+	_, ok = enum.FromString[Role]("moderator")
+	assert.False(t, ok)
+}
+
+func TestMustFromInt(t *testing.T) {
+	type Role int
+
+	assert.Panics(t, func() { enum.MustFromInt[Role](0) })
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, enum.MustFromInt[Role](0), RoleUser)
+	assert.Equal(t, enum.MustFromInt[Role](1), RoleAdmin)
+	assert.Panics(t, func() { enum.MustFromInt[Role](2) })
 }
 
 func TestUndefined(t *testing.T) {
@@ -137,14 +172,14 @@ func TestUndefined(t *testing.T) {
 	assert.True(t, enum.IsValid(RoleUser))
 	assert.True(t, enum.IsValid(RoleAdmin))
 
-	_, ok := enum.EnumOf[Role]("moderator")
+	_, ok := enum.FromString[Role]("moderator")
 	assert.False(t, ok)
 }
 
 func TestUndefinedEnum(t *testing.T) {
 	type Role int
 
-	moderator, _ := enum.EnumOf[Role]("moderator")
+	moderator, _ := enum.FromString[Role]("moderator")
 	assert.False(t, enum.IsValid(moderator))
 	assert.False(t, enum.IsValid(Role(0)))
 }

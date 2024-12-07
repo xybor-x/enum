@@ -15,19 +15,17 @@ func ExampleNew() {
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	fmt.Println("string repr of RoleUser:", enum.StringOf(RoleUser))
-	fmt.Println("string repr of RoleAdmin:", enum.StringOf(RoleAdmin))
+	fmt.Println("string repr of RoleUser:", enum.ToString(RoleUser))
+	fmt.Println("string repr of RoleAdmin:", enum.ToString(RoleAdmin))
 
-	num, _ := enum.EnumOf[Role]("user")
-	fmt.Println("number repr of \"user\":", num)
-	num, _ = enum.EnumOf[Role]("admin")
-	fmt.Println("number repr of \"admin\":", num)
+	fmt.Println("number repr of user:", enum.MustFromString[Role]("user"))
+	fmt.Println("number repr of admin:", enum.MustFromString[Role]("admin"))
 
 	// Output:
 	// string repr of RoleUser: user
 	// string repr of RoleAdmin: admin
-	// number repr of "user": 0
-	// number repr of "admin": 1
+	// number repr of user: 0
+	// number repr of admin: 1
 }
 
 func ExampleMap() {
@@ -43,24 +41,18 @@ func ExampleMap() {
 		_ = enum.Map(RoleAdmin, "admin")
 	)
 
-	fmt.Println("string repr of RoleUser:", enum.StringOf(RoleUser))
-	fmt.Println("string repr of RoleAdmin:", enum.StringOf(RoleAdmin))
-
-	num, _ := enum.EnumOf[Role]("user")
-	fmt.Println("number repr of \"user\":", num)
-	num, _ = enum.EnumOf[Role]("admin")
-	fmt.Println("number repr of \"admin\":", num)
+	for _, e := range enum.All[Role]() {
+		fmt.Println(enum.ToString(e))
+	}
 
 	// Output:
-	// string repr of RoleUser: user
-	// string repr of RoleAdmin: admin
-	// number repr of "user": 0
-	// number repr of "admin": 1
+	// user
+	// admin
 }
 
 func ExampleRichEnum() {
-	type unsafeRole any
-	type Role = enum.RichEnum[unsafeRole]
+	type role any
+	type Role = enum.RichEnum[role]
 
 	const (
 		RoleUser Role = iota
@@ -72,15 +64,21 @@ func ExampleRichEnum() {
 		_ = enum.Map(RoleAdmin, "admin")
 	)
 
-	data, _ := json.Marshal(RoleUser)
+	type User struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+		Role Role   `json:"role"`
+	}
+
+	user1 := User{ID: 0, Name: "tester", Role: RoleAdmin}
+	data, _ := json.Marshal(user1)
 	fmt.Println(string(data))
-	fmt.Printf("%d\n", RoleAdmin)
-	fmt.Printf("%s\n", RoleAdmin)
-	fmt.Println(RoleAdmin.IsValid())
+
+	user2 := User{}
+	json.Unmarshal(data, &user2)
+	fmt.Printf("%#v", user2.Role)
 
 	// Output:
-	// "user"
-	// 1
-	// admin
-	// true
+	// {"id":0,"name":"tester","role":"admin"}
+	// 1 (admin)
 }

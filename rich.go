@@ -1,18 +1,8 @@
 package enum
 
 import (
-	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
-)
-
-var (
-	_ json.Marshaler   = RichEnum[int](0)
-	_ json.Unmarshaler = (*RichEnum[int])(nil)
-	_ driver.Valuer    = RichEnum[int](0)
-	_ sql.Scanner      = (*RichEnum[int])(nil)
-	_ fmt.Stringer     = RichEnum[int](0)
 )
 
 // RichEnum provides a set of utility methods to simplify working with enums.
@@ -46,10 +36,10 @@ func (e RichEnum[T]) Int() int {
 	return int(e)
 }
 
-func (e RichEnum[T]) Repr() string {
-	return fmt.Sprintf("%d (%s)", e.Int(), e.String())
+func (e RichEnum[T]) String() string {
+	return ToString(e)
 }
 
-func (e RichEnum[T]) String() string {
-	return StringOf(e)
+func (e RichEnum[T]) GoString() string {
+	return fmt.Sprintf("%d (%s)", e, e)
 }
