@@ -1,14 +1,14 @@
-package enum
+package mtmap
 
-type mtmap struct {
+type MTMap struct {
 	data map[any]any
 }
 
-type keyI[T any] interface {
-	underlyingkey() T
+type mtKeyer[V any] interface {
+	InferValue() V
 }
 
-func get2[V any](m *mtmap, key keyI[V]) (V, bool) {
+func GetM[V any](m *MTMap, key mtKeyer[V]) (V, bool) {
 	var zero V
 	if m.data == nil {
 		return zero, false
@@ -36,22 +36,15 @@ func get2[V any](m *mtmap, key keyI[V]) (V, bool) {
 	}
 }
 
-func get[V any](m *mtmap, key keyI[V]) V {
-	v, _ := get2(m, key)
+func MustGetM[V any](m *MTMap, key mtKeyer[V]) V {
+	v, _ := GetM[V](m, key)
 	return v
 }
 
-func set[V any](m *mtmap, key keyI[V], val V) {
+func SetM[V any](m *MTMap, key mtKeyer[V], val V) {
 	if m.data == nil {
 		m.data = map[any]any{}
 	}
 
 	m.data[key] = val
 }
-
-type key[K, V any] struct {
-	key K
-}
-
-// this is not called, but it implements the type asseertion.
-func (k key[K, V]) underlyingkey() (val V) { return }
