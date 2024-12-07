@@ -18,6 +18,7 @@ Install the package via `go get`:
 go get -u github.com/xybor-x/enum
 ```
 
+
 ## Quick start
 
 *Please refer [Usage](#usage) for further details.*
@@ -45,6 +46,7 @@ func main() {
     fmt.Println(RoleAdmin.IsValid())  // Output: true
 }
 ```
+
 
 ## Usage
 
