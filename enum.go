@@ -132,7 +132,7 @@ func EnumOf[T Enumable](s string) (T, bool) {
 func MustEnumOf[T Enumable](s string) T {
 	enum, ok := get2(enums, key[string, T]{s})
 	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeFor[T]().Name()))
+		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeOf(T(0)).Name()))
 	}
 
 	return enum
@@ -142,7 +142,7 @@ func MustEnumOf[T Enumable](s string) T {
 func StringOf[T Enumable](value T) string {
 	enum, ok := get2(enums, key[T, string]{value})
 	if !ok {
-		return fmt.Sprintf("%s::%s", reflect.TypeFor[T]().Name(), UndefinedString)
+		return fmt.Sprintf("%s::%s", reflect.TypeOf(T(0)).Name(), UndefinedString)
 	}
 	return enum
 }
@@ -152,7 +152,7 @@ func StringOf[T Enumable](value T) string {
 func MustStringOf[T Enumable](value T) string {
 	str := StringOf(value)
 	if strings.HasSuffix(str, UndefinedString) {
-		panic(fmt.Sprintf("enum %s: invalid value %v", reflect.TypeFor[T]().Name(), value))
+		panic(fmt.Sprintf("enum %s: invalid value %v", reflect.TypeOf(T(0)).Name(), value))
 	}
 
 	return str
@@ -175,7 +175,7 @@ func IsValid[T Enumable](value T) bool {
 //	data, _ := MarshalJSON(role)  // Result: []byte(`"admin"`)
 func MarshalJSON[T Enumable](value T) ([]byte, error) {
 	if !IsValid(value) {
-		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeFor[T]().Name(), value)
+		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeOf(T(0)).Name(), value)
 	}
 
 	return json.Marshal(StringOf(value))
@@ -198,7 +198,7 @@ func UnmarshalJSON[T Enumable](data []byte, t *T) error {
 
 	enum, valid := EnumOf[T](str)
 	if !valid {
-		return fmt.Errorf("unknown %s string: %s", reflect.TypeFor[T]().Name(), str)
+		return fmt.Errorf("unknown %s string: %s", reflect.TypeOf(T(0)).Name(), str)
 	}
 
 	*t = enum
