@@ -24,6 +24,8 @@ go get -u github.com/xybor-x/enum
 
 In Go, `iota` is a special identifier used to create incrementing constants, making it perfect for defining enums.
 
+`xybor-x/enum` is fully compatible with iota-based enums.
+
 ```go
 type role any
 type Role = enum.RichEnum[role]
@@ -47,6 +49,8 @@ func main() {
 ## Usage
 
 ### Define enum
+
+**Note**: Enum definitions are not thread-safe. Therefore, they should be finalized during initialization (at the global scope).
 
 #### Short definition (variable enums)
 
@@ -72,8 +76,8 @@ const (
 )
 
 func init() {
-    enum.Map(RoleUser, "user")   // Maps RoleUser to "user"
-    enum.Map(RoleAdmin, "admin") // Maps RoleAdmin to "admin"
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleAdmin, "admin")
 }
 ```
 
@@ -82,9 +86,9 @@ func init() {
 #### EnumOf
 
 ```go
-role := enum.EnumOf[Role]("user")
-if enum.IsValid(role) {
-    fmt.Println("Enum representation:", role) // Output: RoleUser
+role, ok := enum.EnumOf[Role]("user")
+if ok {
+    fmt.Println("Enum representation:", role) // Output: 0
 } else {
     fmt.Println("Invalid enum")
 }
@@ -94,6 +98,14 @@ if enum.IsValid(role) {
 
 ```go
 fmt.Println("String:", enum.StringOf(RoleAdmin)) // Output: "admin"
+```
+
+#### IsValid
+
+```go
+fmt.Println(enum.IsValid(RoleUser)) // true
+fmt.Println(enum.IsValid(Role(0)))  // true
+fmt.Println(enum.IsValid(Role(3)))  // false
 ```
 
 #### All
@@ -109,7 +121,9 @@ for _, role := range enum.All[Role]() {
 
 ### Rich enum
 
-Extend functionality with `enum.RichEnum`, which implements `fmt.Stringer`, `json.Marshaler`, and `json.Unmarshaler`.
+Instead of defining your enum type as `int`, you can use `enum.RichEnum` (an `int` alias) to to leverage several convenient features:
+- Interact with enums using methods instead of standalone functions.
+- Built-in support for serialization and deserialization.
 
 ```go
 type role any
