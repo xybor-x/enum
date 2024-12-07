@@ -1,6 +1,8 @@
 package enum
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 )
@@ -8,6 +10,8 @@ import (
 var (
 	_ json.Marshaler   = RichEnum[int](0)
 	_ json.Unmarshaler = (*RichEnum[int])(nil)
+	_ driver.Valuer    = RichEnum[int](0)
+	_ sql.Scanner      = (*RichEnum[int])(nil)
 	_ fmt.Stringer     = RichEnum[int](0)
 )
 
@@ -28,6 +32,14 @@ func (e RichEnum[T]) MarshalJSON() ([]byte, error) {
 
 func (e *RichEnum[T]) UnmarshalJSON(data []byte) error {
 	return UnmarshalJSON(data, e)
+}
+
+func (e RichEnum[T]) Value() (driver.Value, error) {
+	return ValueSQL(e)
+}
+
+func (e *RichEnum[T]) Scan(a any) error {
+	return ScanSQL(a, e)
 }
 
 func (e RichEnum[T]) Int() int {
