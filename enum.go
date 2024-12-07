@@ -25,6 +25,7 @@
 package enum
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -35,13 +36,13 @@ const UndefinedString = "<<undefined>>"
 
 var enums = &mtmap{}
 
-type Enumable interface {
+type enumable interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 |
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
 		~float32 | ~float64
 }
 
-func getAvailableEnumValue[T Enumable]() T {
+func getAvailableEnumValue[T enumable]() T {
 	id := 0
 	for {
 		if _, ok := get2(enums, key[T, string]{T(id)}); !ok {
@@ -73,7 +74,7 @@ func getAvailableEnumValue[T Enumable]() T {
 //     need a constant enum, declare it explicitly and use enum.Map() instead.
 //   - This method is not thread-safe and should only be called during
 //     initialization or other safe execution points to avoid race conditions.
-func New[T Enumable](s string) T {
+func New[T enumable](s string) T {
 	e := getAvailableEnumValue[T]()
 	return Map(e, s)
 }
@@ -103,9 +104,13 @@ func New[T Enumable](s string) T {
 //
 // Note that this method is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
-func Map[T Enumable](value T, s string) T {
+func Map[T enumable](value T, s string) T {
 	if !strings.HasSuffix(StringOf(value), UndefinedString) {
 		panic("do not map a mapped enum")
+	}
+
+	if _, ok := EnumOf[T](s); ok {
+		panic("do not map a mapped string")
 	}
 
 	set(enums, key[T, string]{T(value)}, s)
@@ -119,7 +124,7 @@ func Map[T Enumable](value T, s string) T {
 
 // EnumOf returns the corresponding enum for a given string
 // representation, and whether it is valid.
-func EnumOf[T Enumable](s string) (T, bool) {
+func EnumOf[T enumable](s string) (T, bool) {
 	enum, ok := get2(enums, key[string, T]{s})
 	if !ok {
 		return T(0), false
@@ -129,7 +134,7 @@ func EnumOf[T Enumable](s string) (T, bool) {
 
 // MustEnumOf returns the corresponding enum for a given string representation.
 // It panics if the string does not correspond to a valid enum value.
-func MustEnumOf[T Enumable](s string) T {
+func MustEnumOf[T enumable](s string) T {
 	enum, ok := get2(enums, key[string, T]{s})
 	if !ok {
 		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeOf(T(0)).Name()))
@@ -139,7 +144,7 @@ func MustEnumOf[T Enumable](s string) T {
 }
 
 // StringOf returns the string representation of an enum value.
-func StringOf[T Enumable](value T) string {
+func StringOf[T enumable](value T) string {
 	enum, ok := get2(enums, key[T, string]{value})
 	if !ok {
 		return fmt.Sprintf("%s::%s", reflect.TypeOf(T(0)).Name(), UndefinedString)
@@ -149,7 +154,7 @@ func StringOf[T Enumable](value T) string {
 
 // MustStringOf returns the string representation of an enum value.
 // It panics if the enum value is invalid.
-func MustStringOf[T Enumable](value T) string {
+func MustStringOf[T enumable](value T) string {
 	str := StringOf(value)
 	if strings.HasSuffix(str, UndefinedString) {
 		panic(fmt.Sprintf("enum %s: invalid value %v", reflect.TypeOf(T(0)).Name(), value))
@@ -160,20 +165,13 @@ func MustStringOf[T Enumable](value T) string {
 
 // IsValid checks if an enum value is valid.
 // It returns true if the enum value is valid, and false otherwise.
-func IsValid[T Enumable](value T) bool {
+func IsValid[T enumable](value T) bool {
 	_, ok := get2(enums, key[T, string]{value})
 	return ok
 }
 
 // MarshalJSON serializes an enum value into its string representation.
-// This utility function takes an enum value and converts it into a JSON byte
-// slice, representing the enum as a string instead of a numeric value.
-//
-// Example:
-//
-//	role := RoleAdmin
-//	data, _ := MarshalJSON(role)  // Result: []byte(`"admin"`)
-func MarshalJSON[T Enumable](value T) ([]byte, error) {
+func MarshalJSON[T enumable](value T) ([]byte, error) {
 	if !IsValid(value) {
 		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeOf(T(0)).Name(), value)
 	}
@@ -182,15 +180,8 @@ func MarshalJSON[T Enumable](value T) ([]byte, error) {
 }
 
 // UnmarshalJSON deserializes a string representation of an enum value from
-// JSON. This utility function takes a byte slice of JSON data and converts it
-// into the corresponding enum value.
-//
-// Example:
-//
-//	data := []byte(`"admin"`)
-//	var role Role
-//	_ := UnmarshalJSON(&role, data)  // role will be set to RoleAdmin
-func UnmarshalJSON[T Enumable](data []byte, t *T) error {
+// JSON.
+func UnmarshalJSON[T enumable](data []byte, t *T) error {
 	var str string
 	if err := json.Unmarshal(data, &str); err != nil {
 		return err
@@ -205,6 +196,37 @@ func UnmarshalJSON[T Enumable](data []byte, t *T) error {
 	return nil
 }
 
+// ValueSQL serializes an enum into a database-compatible format.
+func ValueSQL[T enumable](value T) (driver.Value, error) {
+	if !IsValid(value) {
+		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeOf(T(0)).Name(), value)
+	}
+
+	return StringOf(value), nil
+}
+
+// ScanSQL deserializes a database value into an enum type.
+func ScanSQL[T enumable](a any, value *T) error {
+	var data string
+	switch t := a.(type) {
+	case string:
+		data = t
+	case []byte:
+		data = string(t)
+	default:
+		return fmt.Errorf("not support type %T", a)
+	}
+
+	enum, ok := EnumOf[T](data)
+	if !ok {
+		return fmt.Errorf("unknown %s string: %s", reflect.TypeOf(T(0)).Name(), data)
+	}
+
+	*value = enum
+
+	return nil
+}
+
 // All returns a slice containing all enum values of a specific type.
 //
 // This function iterates over all defined constants of the given enum type and
@@ -213,6 +235,6 @@ func UnmarshalJSON[T Enumable](data []byte, t *T) error {
 // Example usage:
 //
 //	roles := All[Role]() // roles = []Role{RoleAdmin, RoleUser}
-func All[T Enumable]() []T {
+func All[T enumable]() []T {
 	return get(enums, key[T, []T]{T(0)})
 }
