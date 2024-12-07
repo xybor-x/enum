@@ -56,8 +56,6 @@ func main() {
 
 #### Short definition (variable enums)
 
-The `enum.New` function allows dynamic initialization of enum values and maps them to a string representation.
-
 ```go
 type Role int
 
@@ -123,7 +121,7 @@ for _, role := range enum.All[Role]() {
 
 ### Rich enum
 
-Instead of defining your enum type as `int`, you can use `enum.RichEnum` (an `int` alias) to to leverage several convenient features:
+Instead of defining your enum type as `int`, you can use `enum.RichEnum` (an `int` alias) to leverage several convenient features:
 - Interact with enums using methods instead of standalone functions.
 - Built-in support for serialization and deserialization.
 
