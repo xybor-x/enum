@@ -10,37 +10,45 @@ import (
 func ExampleNew() {
 	type Role int
 
+	// Define enum values for Role.
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
+		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
-	fmt.Println("string repr of RoleUser:", enum.ToString(RoleUser))
-	fmt.Println("string repr of RoleAdmin:", enum.ToString(RoleAdmin))
+	// Print the string representation of enum values.
+	fmt.Println("string(RoleUser):", enum.ToString(RoleUser))
+	fmt.Println("string(RoleAdmin):", enum.ToString(RoleAdmin))
 
-	fmt.Println("number repr of user:", enum.MustFromString[Role]("user"))
-	fmt.Println("number repr of admin:", enum.MustFromString[Role]("admin"))
+	// Demonstrate converting string to enum value.
+	fmt.Println(`enum("user"):`, enum.MustFromString[Role]("user"))
+	fmt.Println(`enum("admin"):`, enum.MustFromString[Role]("admin"))
 
 	// Output:
-	// string repr of RoleUser: user
-	// string repr of RoleAdmin: admin
-	// number repr of user: 0
-	// number repr of admin: 1
+	// string(RoleUser): user
+	// string(RoleAdmin): admin
+	// enum("user"): 0
+	// enum("admin"): 1
 }
 
 func ExampleMap() {
 	type Role int
 
+	// Define enum values for Role using iota.
 	const (
 		RoleUser Role = iota
 		RoleAdmin
 	)
 
+	// Map string representations to enum values.
 	var (
 		_ = enum.Map(RoleUser, "user")
 		_ = enum.Map(RoleAdmin, "admin")
+		_ = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
+	// Print all enum values.
 	for _, e := range enum.All[Role]() {
 		fmt.Println(enum.ToString(e))
 	}
@@ -50,35 +58,82 @@ func ExampleMap() {
 	// admin
 }
 
-func ExampleRichEnum() {
-	type role any
-	type Role = enum.RichEnum[role]
+func ExampleSerde() {
+	type Role int
 
+	// Define enum values for Role using iota.
 	const (
 		RoleUser Role = iota
 		RoleAdmin
 	)
 
+	// Map string representations to enum values.
 	var (
 		_ = enum.Map(RoleUser, "user")
 		_ = enum.Map(RoleAdmin, "admin")
+		_ = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
+	type User struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+
+		// Serde provides functionality for serializing and deserializing enums
+		// that cannot be directly serialized or deserialized.
+		Role enum.Serde[Role] `json:"role"`
+	}
+
+	user := User{ID: 1, Name: "tester", Role: enum.SerdeWrap(RoleAdmin)}
+	data, _ := json.Marshal(user)
+	fmt.Println(string(data)) // role's value should be "admin" instead of 1.
+
+	// Output:
+	// {"id":1,"name":"tester","role":"admin"}
+}
+
+func ExampleRichEnum() {
+	// Define a generic enum type
+	type role any
+	type Role = enum.RichEnum[role]
+
+	// Define enum values for Role using iota
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
+
+	// Map string representations to enum values
+	var (
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
+		_ = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+	)
+
+	// As Role is a RichEnum, it can utilize methods from RichEnum, including
+	// utility functions and serde operations.
+	fmt.Println(RoleUser.GoString()) // 0 (user)
+	fmt.Println(RoleUser.IsValid())  // true
+
+	// Define a struct that includes the Role enum.
 	type User struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`
 		Role Role   `json:"role"`
 	}
 
+	// Serialize the User struct to JSON.
 	user1 := User{ID: 0, Name: "tester", Role: RoleAdmin}
 	data, _ := json.Marshal(user1)
 	fmt.Println(string(data))
 
+	// Deserialize JSON back into a User struct and print the Role.
 	user2 := User{}
 	json.Unmarshal(data, &user2)
-	fmt.Printf("%#v", user2.Role)
+	fmt.Println(user2.Role)
 
 	// Output:
+	// 0 (user)
+	// true
 	// {"id":0,"name":"tester","role":"admin"}
-	// 1 (admin)
+	// admin
 }

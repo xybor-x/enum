@@ -11,7 +11,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestNew(t *testing.T) {
+func TestEnumNew(t *testing.T) {
 	type Role int
 	var (
 		RoleUser  = enum.New[Role]("user")
@@ -33,15 +33,12 @@ func TestNew(t *testing.T) {
 	assert.NotEqual(t, File(0), Role(0))
 }
 
-func TestMap(t *testing.T) {
+func TestEnumMap(t *testing.T) {
 	type Role int
 	const (
 		RoleUser Role = iota
 		RoleAdmin
 	)
-
-	assert.Equal(t, enum.ToString(RoleUser), "Role::<<undefined>>")
-	assert.Equal(t, enum.ToString(RoleAdmin), "Role::<<undefined>>")
 
 	var (
 		_ = enum.Map(RoleUser, "user")
@@ -51,8 +48,23 @@ func TestMap(t *testing.T) {
 	assert.Equal(t, enum.ToString(RoleUser), "user")
 	assert.Equal(t, enum.ToString(RoleAdmin), "admin")
 }
+func TestEnumFinalize(t *testing.T) {
+	type Role int
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
 
-func TestMapDuplicated(t *testing.T) {
+	var (
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
+		_ = enum.Finalize[Role]()
+	)
+
+	assert.Panics(t, func() { enum.New[Role]("moderator") })
+}
+
+func TestEnumMapDuplicated(t *testing.T) {
 	type Role int
 
 	var (
@@ -68,9 +80,10 @@ func TestMapDuplicated(t *testing.T) {
 	assert.Panics(t, func() { enum.Map(Role(1), "user") })
 }
 
-func TestToString(t *testing.T) {
+func TestEnumMustToString(t *testing.T) {
 	type Role int
 
+	assert.Panics(t, func() { enum.ToString(Role(0)) })
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
@@ -78,24 +91,10 @@ func TestToString(t *testing.T) {
 
 	assert.Equal(t, enum.ToString(RoleUser), "user")
 	assert.Equal(t, enum.ToString(RoleAdmin), "admin")
-	assert.Equal(t, enum.ToString(Role(2)), "Role::<<undefined>>")
+	assert.Panics(t, func() { enum.ToString(Role(2)) })
 }
 
-func TestMustToString(t *testing.T) {
-	type Role int
-
-	assert.Panics(t, func() { enum.MustToString(Role(0)) })
-	var (
-		RoleUser  = enum.New[Role]("user")
-		RoleAdmin = enum.New[Role]("admin")
-	)
-
-	assert.Equal(t, enum.MustToString(RoleUser), "user")
-	assert.Equal(t, enum.MustToString(RoleAdmin), "admin")
-	assert.Panics(t, func() { enum.MustToString(Role(2)) })
-}
-
-func TestFromString(t *testing.T) {
+func TestEnumFromString(t *testing.T) {
 	type Role int
 
 	var (
@@ -111,7 +110,7 @@ func TestFromString(t *testing.T) {
 	assert.False(t, valid)
 }
 
-func TestMustFromString(t *testing.T) {
+func TestEnumMustFromString(t *testing.T) {
 	type Role int
 
 	assert.Panics(t, func() { enum.MustFromString[Role]("moderator") })
@@ -126,7 +125,7 @@ func TestMustFromString(t *testing.T) {
 	assert.Panics(t, func() { enum.MustFromString[Role]("moderator") })
 }
 
-func TestFromInt(t *testing.T) {
+func TestEnumFromInt(t *testing.T) {
 	type Role int
 
 	var (
@@ -146,7 +145,7 @@ func TestFromInt(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestMustFromInt(t *testing.T) {
+func TestEnumMustFromInt(t *testing.T) {
 	type Role int
 
 	assert.Panics(t, func() { enum.MustFromInt[Role](0) })
@@ -161,7 +160,21 @@ func TestMustFromInt(t *testing.T) {
 	assert.Panics(t, func() { enum.MustFromInt[Role](2) })
 }
 
-func TestUndefined(t *testing.T) {
+func TestEnumMustToInt(t *testing.T) {
+	type Role int
+
+	assert.Panics(t, func() { enum.ToInt(Role(0)) })
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, enum.ToInt(RoleUser), 0)
+	assert.Equal(t, enum.ToInt(RoleAdmin), 1)
+	assert.Panics(t, func() { enum.ToInt(Role(2)) })
+}
+
+func TestEnumUndefined(t *testing.T) {
 	type Role int
 
 	var (
@@ -176,7 +189,7 @@ func TestUndefined(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestUndefinedEnum(t *testing.T) {
+func TestEnumUndefinedEnum(t *testing.T) {
 	type Role int
 
 	moderator, _ := enum.FromString[Role]("moderator")
@@ -184,7 +197,7 @@ func TestUndefinedEnum(t *testing.T) {
 	assert.False(t, enum.IsValid(Role(0)))
 }
 
-func TestMarshalJSON(t *testing.T) {
+func TestEnumMarshalJSON(t *testing.T) {
 	type Role int
 
 	var (
@@ -196,10 +209,10 @@ func TestMarshalJSON(t *testing.T) {
 	assert.Equal(t, []byte(`"user"`), data)
 
 	_, err = enum.MarshalJSON(Role(1))
-	assert.ErrorContains(t, err, "unknown Role: 1")
+	assert.ErrorContains(t, err, "enum Role: invalid")
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestEnumUnmarshalJSON(t *testing.T) {
 	type Role int
 
 	var (
@@ -218,10 +231,10 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	// Invalid enum
 	err = enum.UnmarshalJSON([]byte(`"admin"`), &data)
-	assert.ErrorContains(t, err, "unknown Role string: admin")
+	assert.ErrorContains(t, err, "enum Role: unknown string admin")
 }
 
-func TestAll(t *testing.T) {
+func TestEnumAll(t *testing.T) {
 	type Role int
 
 	assert.Nil(t, enum.All[Role]())
@@ -236,7 +249,7 @@ func TestAll(t *testing.T) {
 	assert.Contains(t, all, RoleAdmin)
 }
 
-func TestNonIntEnum(t *testing.T) {
+func TestEnumNonIntEnum(t *testing.T) {
 	type Role byte
 
 	assert.Nil(t, enum.All[Role]())
@@ -251,7 +264,7 @@ func TestNonIntEnum(t *testing.T) {
 	assert.Contains(t, all, RoleAdmin)
 }
 
-func TestValueSQL(t *testing.T) {
+func TestEnumValueSQL(t *testing.T) {
 	type Role int
 
 	var (
@@ -263,10 +276,10 @@ func TestValueSQL(t *testing.T) {
 	assert.Equal(t, "user", data)
 
 	_, err = enum.ValueSQL(Role(1))
-	assert.ErrorContains(t, err, "unknown Role: 1")
+	assert.ErrorContains(t, err, "enum Role: invalid 1")
 }
 
-func TestScanSQL(t *testing.T) {
+func TestEnumScanSQL(t *testing.T) {
 	type Role int
 
 	var (
@@ -287,10 +300,10 @@ func TestScanSQL(t *testing.T) {
 
 	// Invalid enum
 	err = enum.ScanSQL("admin", &data)
-	assert.ErrorContains(t, err, "unknown Role string: admin")
+	assert.ErrorContains(t, err, "enum Role: unknown string admin")
 }
 
-func TestSQL(t *testing.T) {
+func TestEnumSQL(t *testing.T) {
 	type role any
 	type Role = enum.RichEnum[role]
 
@@ -322,7 +335,7 @@ func TestSQL(t *testing.T) {
 	assert.Equal(t, retrievedRole, RoleUser)
 }
 
-func TestJSON(t *testing.T) {
+func TestEnumJSON(t *testing.T) {
 	type role any
 	type Role = enum.RichEnum[role]
 

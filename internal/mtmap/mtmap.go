@@ -37,7 +37,7 @@ func GetM[V any](m *MTMap, key mtKeyer[V]) (V, bool) {
 }
 
 func MustGetM[V any](m *MTMap, key mtKeyer[V]) V {
-	v, _ := GetM[V](m, key)
+	v, _ := GetM(m, key)
 	return v
 }
 
