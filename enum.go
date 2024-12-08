@@ -1,54 +1,25 @@
-// Package enum provides a type-safe and simple enum implementation for Go,
+// Package enum provides a type-safe and powerful enum implementation for Go,
 // offering easy conversion between numeric and string representations.
 //
 // It supports constant enums and integrates seamlessly with Go's `iota` enum pattern.
-//
-// Example usage:
-//
-//	type Role int
-//
-//	const (
-//	  RoleUser Role = iota
-//	  RoleAdmin
-//	)
-//
-//	var (
-//	  _ = enum.Map(RoleUser, "user")
-//	  _ = enum.Map(RoleAdmin, "admin")
-//	)
 //
 // Features:
 //   - No code generation
 //   - Supports constant enums
 //   - Easy value conversions
-//   - Support serialization
+//   - Out of the box serialization
 package enum
 
 import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"reflect"
-	"strings"
 
-	"github.com/xybor-x/enum/internal"
+	"github.com/xybor-x/enum/internal/common"
+	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
 )
-
-const Undefined = "<<undefined>>"
-
-func getAvailableEnumValue[T internal.Enumable]() T {
-	id := T(0)
-	for {
-		if _, ok := mtmap.Get(mtkey.Enum2String(id)); !ok {
-			break
-		}
-		id++
-	}
-
-	return T(id)
-}
 
 // New creates a dynamic enum value and maps it to a string representation.
 //
@@ -61,56 +32,42 @@ func getAvailableEnumValue[T internal.Enumable]() T {
 //     need a constant enum, declare it explicitly and use enum.Map() instead.
 //   - This method is not thread-safe and should only be called during
 //     initialization or other safe execution points to avoid race conditions.
-func New[T internal.Enumable](s string) T {
-	e := getAvailableEnumValue[T]()
-	return Map(e, s)
+func New[T common.Integral](s string) T {
+	id := core.GetAvailableEnumValue[T]()
+	return Map(T(id), s)
 }
 
-// Map associates an enum constant with a string representation.
+// Map associates a number enum with a string representation.
 //
 // This function is used to map an enum value to its corresponding string,
 // allowing easier handling of enums in contexts like serialization, logging,
 // or user-facing output.
 //
-// In this example, RoleUser is mapped to "user" and RoleAdmin to "admin".
-// Once mapped, these associations can be used to retrieve the string value
-// or convert a string back to the corresponding enum.
-//
 // Note that this method is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
-func Map[T internal.Enumable](value T, s string) T {
-	if !strings.HasSuffix(ToString(value), Undefined) {
-		panic("do not map a mapped enum")
-	}
+func Map[T common.Integral](value T, s string) T {
+	return core.MapAny(int64(value), value, s)
+}
 
-	if _, ok := FromString[T](s); ok {
-		panic("do not map a mapped string")
-	}
-
-	mtmap.Set(mtkey.Enum2String(value), s)
-	mtmap.Set(mtkey.String2Enum[T](s), value)
-
-	allVals := mtmap.MustGet(mtkey.AllEnums[T]())
-	allVals = append(allVals, value)
-	mtmap.Set(mtkey.AllEnums[T](), allVals)
-
-	return value
+// Finalize prevents any further creation of new enum values.
+func Finalize[T any]() bool {
+	mtmap.Set(mtkey.IsFinalized[T](), true)
+	return true
 }
 
 // FromInt returns the corresponding enum for a given int representation, and
 // whether it is valid.
-func FromInt[T internal.Enumable](i int) (T, bool) {
-	t := T(i)
-	return t, IsValid(t)
+func FromInt[T any](i int) (T, bool) {
+	return mtmap.Get(mtkey.Int2Enum[T](int64(i)))
 }
 
 // MustFromInt returns the corresponding enum for a given int representation.
 //
 // It panics if the enum value is invalid.
-func MustFromInt[T internal.Enumable](i int) T {
+func MustFromInt[T any](i int) T {
 	t, ok := FromInt[T](i)
 	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeOf(T(0)).Name()))
+		panic(fmt.Sprintf("enum %s: invalid int %d", common.NameOf[T](), i))
 	}
 
 	return t
@@ -118,7 +75,7 @@ func MustFromInt[T internal.Enumable](i int) T {
 
 // FromString returns the corresponding enum for a given string representation,
 // and whether it is valid.
-func FromString[T internal.Enumable](s string) (T, bool) {
+func FromString[T any](s string) (T, bool) {
 	return mtmap.Get(mtkey.String2Enum[T](s))
 }
 
@@ -126,10 +83,10 @@ func FromString[T internal.Enumable](s string) (T, bool) {
 // representation.
 //
 // It panics if the string does not correspond to a valid enum value.
-func MustFromString[T internal.Enumable](s string) T {
+func MustFromString[T any](s string) T {
 	enum, ok := FromString[T](s)
 	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid", reflect.TypeOf(T(0)).Name()))
+		panic(fmt.Sprintf("enum %s: invalid string %s", common.NameOf[T](), s))
 	}
 
 	return enum
@@ -137,39 +94,39 @@ func MustFromString[T internal.Enumable](s string) T {
 
 // ToString returns the string representation of the given enum value.
 //
-// If the enum value is invalid, the returned string is formatted as:
-// "EnumType::<<undefined>>".
-func ToString[T internal.Enumable](value T) string {
+// It panics if the enum value is invalid.
+func ToString[T any](value T) string {
 	str, ok := mtmap.Get(mtkey.Enum2String(value))
 	if !ok {
-		return fmt.Sprintf("%s::%s", reflect.TypeOf(T(0)).Name(), Undefined)
+		panic(fmt.Sprintf("enum %s: invalid", common.NameOf[T]()))
 	}
+
 	return str
 }
 
-// MustToString returns the string representation of the given enum value.
+// ToInt returns the int representation for the given enum value.
 //
 // It panics if the enum value is invalid.
-func MustToString[T internal.Enumable](value T) string {
-	str := ToString(value)
-	if strings.HasSuffix(str, Undefined) {
-		panic(fmt.Sprintf("enum %s: invalid value %v", reflect.TypeOf(T(0)).Name(), value))
+func ToInt[T any](enum T) int {
+	value, ok := mtmap.Get(mtkey.Enum2Int(enum))
+	if !ok {
+		panic(fmt.Sprintf("enum %s: invalid", common.NameOf[T]()))
 	}
 
-	return str
+	return int(value)
 }
 
 // IsValid checks if an enum value is valid.
 // It returns true if the enum value is valid, and false otherwise.
-func IsValid[T internal.Enumable](value T) bool {
+func IsValid[T any](value T) bool {
 	_, ok := mtmap.Get(mtkey.Enum2String(value))
 	return ok
 }
 
 // MarshalJSON serializes an enum value into its string representation.
-func MarshalJSON[T internal.Enumable](value T) ([]byte, error) {
+func MarshalJSON[T any](value T) ([]byte, error) {
 	if !IsValid(value) {
-		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeOf(T(0)).Name(), value)
+		return nil, fmt.Errorf("enum %s: invalid", common.NameOf[T]())
 	}
 
 	return json.Marshal(ToString(value))
@@ -177,7 +134,7 @@ func MarshalJSON[T internal.Enumable](value T) ([]byte, error) {
 
 // UnmarshalJSON deserializes a string representation of an enum value from
 // JSON.
-func UnmarshalJSON[T internal.Enumable](data []byte, t *T) error {
+func UnmarshalJSON[T any](data []byte, t *T) error {
 	var str string
 	if err := json.Unmarshal(data, &str); err != nil {
 		return err
@@ -185,7 +142,7 @@ func UnmarshalJSON[T internal.Enumable](data []byte, t *T) error {
 
 	enum, ok := FromString[T](str)
 	if !ok {
-		return fmt.Errorf("unknown %s string: %s", reflect.TypeOf(T(0)).Name(), str)
+		return fmt.Errorf("enum %s: unknown string %s", common.NameOf[T](), str)
 	}
 
 	*t = enum
@@ -193,16 +150,16 @@ func UnmarshalJSON[T internal.Enumable](data []byte, t *T) error {
 }
 
 // ValueSQL serializes an enum into a database-compatible format.
-func ValueSQL[T internal.Enumable](value T) (driver.Value, error) {
+func ValueSQL[T any](value T) (driver.Value, error) {
 	if !IsValid(value) {
-		return nil, fmt.Errorf("unknown %s: %v", reflect.TypeOf(T(0)).Name(), value)
+		return nil, fmt.Errorf("enum %s: invalid %#v", common.NameOf[T](), value)
 	}
 
 	return ToString(value), nil
 }
 
 // ScanSQL deserializes a database value into an enum type.
-func ScanSQL[T internal.Enumable](a any, value *T) error {
+func ScanSQL[T any](a any, value *T) error {
 	var data string
 	switch t := a.(type) {
 	case string:
@@ -215,7 +172,7 @@ func ScanSQL[T internal.Enumable](a any, value *T) error {
 
 	enum, ok := FromString[T](data)
 	if !ok {
-		return fmt.Errorf("unknown %s string: %s", reflect.TypeOf(T(0)).Name(), data)
+		return fmt.Errorf("enum %s: unknown string %s", common.NameOf[T](), data)
 	}
 
 	*value = enum
@@ -224,6 +181,6 @@ func ScanSQL[T internal.Enumable](a any, value *T) error {
 }
 
 // All returns a slice containing all enum values of a specific type.
-func All[T internal.Enumable]() []T {
+func All[T any]() []T {
 	return mtmap.MustGet(mtkey.AllEnums[T]())
 }
