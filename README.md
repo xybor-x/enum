@@ -32,13 +32,13 @@ type role any
 type Role = enum.RichEnum[role]
 
 const (
-	RoleUser Role = iota
-	RoleAdmin
+    RoleUser Role = iota
+    RoleAdmin
 )
 
 func init() {
-	enum.Map(RoleUser, "user")
-	enum.Map(RoleAdmin, "admin")
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleAdmin, "admin")
     enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 }
 
