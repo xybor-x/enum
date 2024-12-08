@@ -1,6 +1,6 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/xybor-x/enum.svg)](https://pkg.go.dev/github.com/xybor-x/enum)
 
-# Enum
+# Go Enum
 
 **Elegant and powerful enums for Go with zero code generation!**
 
