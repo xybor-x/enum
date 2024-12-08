@@ -118,7 +118,7 @@ Convert an `enum` to string.
 ```go
 fmt.Println("String:", enum.ToString(RoleAdmin))  // Output: "admin"
 
-// Note that you should check if enum is valid before calling ToString for
+// Note that you should check if the enum is valid before calling ToString for
 // an unsafe enum.
 fmt.Println("String:", enum.ToString(Role(42)))   // panic
 ```
