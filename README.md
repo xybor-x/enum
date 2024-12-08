@@ -39,6 +39,7 @@ const (
 func init() {
 	enum.Map(RoleUser, "user")
 	enum.Map(RoleAdmin, "admin")
+    enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 }
 
 func main() {
@@ -62,7 +63,7 @@ type Role int
 var (
     RoleUser  = enum.New[Role]("user")
     RoleAdmin = enum.New[Role]("admin")
-	_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+    _         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 )
 ```
 
@@ -79,7 +80,7 @@ const (
 func init() {
     enum.Map(RoleUser, "user")
     enum.Map(RoleAdmin, "admin")
-	enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+    enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 }
 ```
 
@@ -163,7 +164,7 @@ const (
 func init() {
     enum.Map(RoleUser, "user")
     enum.Map(RoleAdmin, "admin")
-	enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+    enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 }
 
 func main() {
