@@ -62,6 +62,7 @@ type Role int
 var (
     RoleUser  = enum.New[Role]("user")
     RoleAdmin = enum.New[Role]("admin")
+	_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 )
 ```
 
@@ -78,6 +79,7 @@ const (
 func init() {
     enum.Map(RoleUser, "user")
     enum.Map(RoleAdmin, "admin")
+	enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 }
 ```
 
@@ -115,7 +117,10 @@ Convert an `enum` to string.
 
 ```go
 fmt.Println("String:", enum.ToString(RoleAdmin))  // Output: "admin"
-fmt.Println("String:", enum.ToString(Role(42)))   // Output: "Role::<<undefined>>"
+
+// Note that you should check if enum is valid before calling ToString for
+// an unsafe enum.
+fmt.Println("String:", enum.ToString(Role(42)))   // panic
 ```
 
 #### IsValid
@@ -123,7 +128,7 @@ fmt.Println("String:", enum.ToString(Role(42)))   // Output: "Role::<<undefined>
 ```go
 fmt.Println(enum.IsValid(RoleUser)) // true
 fmt.Println(enum.IsValid(Role(0)))  // true
-fmt.Println(enum.IsValid(Role(3)))  // false
+fmt.Println(enum.IsValid(Role(42)))  // false
 ```
 
 #### All
@@ -144,7 +149,10 @@ Instead of defining your enum type as `int`, you can use `enum.RichEnum` (also a
 - Built-in support for serialization and deserialization (JSON and SQL).
 
 ```go
+// Define enum's underlying type.
 type role any
+
+// Create a RichEnum type for roles.
 type Role = enum.RichEnum[role] // NOTE: It must use type alias instead of type definition.
 
 const (
@@ -155,10 +163,42 @@ const (
 func init() {
     enum.Map(RoleUser, "user")
     enum.Map(RoleAdmin, "admin")
+	enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 }
 
 func main() {
     data, _ := json.Marshal(RoleUser) // Output: "user"
     fmt.Println(RoleAdmin.IsValid())  // Output: true
+}
+```
+
+### Safe enum
+
+`SafeEnum` defines a type-safe enum.
+
+The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
+
+```go
+// Define enum's underlying type.
+type unsafeRole any
+
+// Create a SafeEnum type for roles.
+type Role = safeenum.SafeEnum[unsafeRole]
+
+// Define specific enum values for the Role type.
+// The second type parameter is known as the positioner. Note that each enum
+// must have a unique positioner; no two enums can share the same positioner.
+var (
+    RoleUser  = safeenum.New[unsafeRole, safeenum.P0]("user")
+    RoleAdmin = safeenum.New[unsafeRole, safeenum.P1]("admin")
+    _         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+)
+
+type User struct {
+    ID   int    `json:"id"`
+    Name string `json:"name"`
+    
+    // Use enum.Serde due to the designation of SafeEnum, as it cannot be directly deserialized.
+    Role enum.Serde[Role] `json:"role"`
 }
 ```
