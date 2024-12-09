@@ -205,7 +205,7 @@ fmt.Println(enum.IsValid(Role(42)))  // false
 fmt.Println(enum.ToString(RoleAdmin))  // Output: "admin"
 
 // Note that you should check if the enum is valid before calling ToString for
-// an unsafe enum.
+// unsafe enums.
 fmt.Println(enum.ToString(Role(42)))   // panic
 ```
 
@@ -217,7 +217,7 @@ fmt.Println(enum.ToString(Role(42)))   // panic
 fmt.Println(enum.ToInt(RoleAdmin))  // Output: 1
 
 // Note that you should check if the enum is valid before calling ToInt for
-// an unsafe enum.
+// unsafe enums.
 fmt.Println(enum.ToInt(Role(42)))   // panic
 ```
 
