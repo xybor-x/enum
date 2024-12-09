@@ -42,6 +42,7 @@ func (e safeEnum[unsafeEnum, P]) MarshalJSON() ([]byte, error) {
 	return enum.MarshalJSON[SafeEnum[unsafeEnum]](e)
 }
 
+// DO NOT USE
 func (e *safeEnum[unsafeEnum, P]) UnmarshalJSON([]byte) error {
 	return errors.New("not implemented")
 }
@@ -50,6 +51,7 @@ func (e safeEnum[unsafeEnum, P]) Value() (driver.Value, error) {
 	return enum.ValueSQL[SafeEnum[unsafeEnum]](e)
 }
 
+// DO NOT USE
 func (e *safeEnum[unsafeEnum, P]) Scan(data any) error {
 	return errors.New("not implemented")
 }

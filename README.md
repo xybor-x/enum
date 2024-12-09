@@ -68,6 +68,8 @@ func init() {
 
 ## Rich enum
 
+`RichEnum` offers many helper methods for cleaner and more maintainable code.
+
 ```go
 // Define enum's underlying type.
 type role any
@@ -96,7 +98,7 @@ func main() {
 
 ## Safe enum
 
-`SafeEnum` defines a type-safe enum.
+`SafeEnum` defines a type-safe enum. Like `RichEnum`, it offers many helper methods for cleaner and more maintainable code.
 
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
@@ -204,22 +206,19 @@ for _, role := range enum.All[Role]() {
 
 ## Constant support
 
-Some static analysis tools support checking for exhaustive `switch` statements in constant enums:
-
-- [golangci-lint](https://github.com/golangci/golangci-lint) – A meta-linter that integrates various linters, including exhaustive checking for enums.
-- [exhaustive](https://github.com/nishanths/exhaustive) – A tool specifically designed to ensure switch statements handle all possible values of constant enums.
-- [go-critic](https://github.com/go-critic/go-critic) – A comprehensive Go linter with checks, including validation for exhaustive switch statements.
-- [nogo for Bazel](https://github.com/bazel-contrib/rules_go/blob/master/go/nogo.rst) – A Bazel-specific tool for enforcing static checks, including exhaustive switch checks for Go code.
+Some static analysis tools support checking for exhaustive `switch` statements in constant enums. By choosing an `enum` with constant support, you can enable this functionality in these tools.
 
 ## Serialization and deserialization
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
+*Note that NOT ALL enum styles support both serialization and deserialization.*
+
 Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
 - `SQL`: Implements `driver.Valuer` and `sql.Scanner`.
 
-For enums that do not natively support serialization or deserialization, the `Serde` wrapper can be used to enable this functionality.
+For enum styles that do not natively support serialization or deserialization, the `Serde` wrapper can be used to enable this functionality.
 
 ```go
 // Basic enum doesn't support serialization and deserialization.
@@ -263,4 +262,4 @@ However, it is still possible to accidentally create an invalid enum value, like
 moderator := Role(42) // Invalid enum value
 ```
 
-The [`safe enum`][3] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `safe enum` without explicitly using the `safeenum.New` function.
+The [`SafeEnum`][3] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` without explicitly using the `safeenum.New` function.
