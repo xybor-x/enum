@@ -29,18 +29,28 @@ go get -u github.com/xybor-x/enum
 
 ## 📋 Features
 
-All enum types behave nearly consistently, so you can choose the style that best fits your use case without worrying about differences in functionality.
+All enum types behave nearly consistently, so you can choose the style that best fits your use case without worrying about differences in functionality. You can refer to the [recommendations](#-recommendations).
 
-|                            | Basic enum ([#][1]) | Int enum ([#][2]) | Struct Enum [#][3] | Safe enum ([#][4]) |
-| -------------------------- | ------------------- | ----------------- | ------------------ | ------------------ |
-| **Built-in methods**       | No                  | Yes               | Yes                | Yes                |
-| **Constant enum** ([#][6]) | Yes                 | Yes               | No                 | No                 |
-| **Enum type**              | Any integer types   | `int`             | `struct`           | `interface`        |
-| **Enum value type**        | Any integer types   | `int`             | `struct`           | `struct`           |
-| **Serde** ([#][7])         | No                  | Full              | Full               | Serialization only |
-| **Type safety** ([#][8])   | Basic               | Basic             | Good               | Strong             |
+|                            | Basic enum ([#][1]) | Int enum ([#][2]) | Struct enum ([#][3]) | Safe enum ([#][4]) |
+| -------------------------- | ------------------- | ----------------- | -------------------- | ------------------ |
+| **Built-in methods**       | No                  | Yes               | Yes                  | Yes                |
+| **Constant enum** ([#][6]) | Yes                 | Yes               | No                   | No                 |
+| **Enum type**              | Any integer types   | `int`             | `struct`             | `interface`        |
+| **Enum value type**        | Any integer types   | `int`             | `struct`             | `struct`           |
+| **Serde** ([#][7])         | No                  | Full              | Full                 | Serialization only |
+| **Type safety** ([#][8])   | Basic               | Basic             | Good                 | Strong             |
 
 ❗ **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
+
+
+## 🔍 Recommendations
+
+|                        | Basic enum | Int enum                | Struct Enum              | Safe enum |
+| ---------------------- | ---------- | ----------------------- | ------------------------ | --------- |
+| **Simplified use**     | Yes        | Maybe                   | Maybe                    | No        |
+| **General use**        | No         | Yes (constant required) | Yes (type-safe required) | No        |
+| **Strict type safety** | No         | No                      | Maybe                    | Yes       |
+
 
 ## ⭐ Basic enum
 
