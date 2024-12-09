@@ -234,11 +234,11 @@ for _, role := range enum.All[Role]() {
 // Role: admin
 ```
 
-## ✏️ Constant support
+## 🔅 Constant support
 
 Some static analysis tools support checking for exhaustive `switch` statements in constant enums. By choosing an `enum` with constant support, you can enable this functionality in these tools.
 
-## ✏️ Serialization and deserialization
+## 🔅 Serialization and deserialization
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
@@ -282,7 +282,7 @@ func main() {
 }
 ```
 
-## Type safety
+## 🔅 Type safety
 
 By default, `xybor-x/enum` provides [functions](#utility-functions) to parse or validate an `enum`, offering a **basic type safety**.
 
