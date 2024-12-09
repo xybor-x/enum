@@ -9,13 +9,13 @@
 
 **Elegant and powerful enums for Go with zero code generation!**
 
-[1]: #basic-enum
-[2]: #rich-enum
-[3]: #safe-enum
-[4]: #utility-functions
-[5]: #constant-support
-[6]: #serialization-and-deserialization
-[7]: #type-safety
+[1]: #⭐-basic-enum
+[2]: #⭐-rich-enum
+[3]: #⭐-safe-enum
+[4]: #💡-utility-functions
+[5]: #🔅-constant-support
+[6]: #🔅-serialization-and-deserialization
+[7]: #🔅-type-safety
 
 ## 🔧 Installation
 
@@ -39,7 +39,7 @@ go get -u github.com/xybor-x/enum
 
 ## ⭐ Basic enum
 
-Basic enum is the simplest enum style. For handling this type of enum, refer to the [utility functions](#utility-functions).
+Basic enum is the simplest enum style. For handling this type of enum, refer to the [utility functions][4].
 
 **Pros 💪**:
 - Simplest.
@@ -247,7 +247,7 @@ Some static analysis tools support checking for exhaustive `switch` statements i
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
-*Note that NOT ALL enum styles support both serialization and deserialization. Refer to the [features/serde](#features).*
+*Note that NOT ALL enum styles support both serialization and deserialization. Refer to the [features/serde](#📋-features).*
 
 Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
@@ -289,7 +289,7 @@ func main() {
 
 ## 🔅 Type safety
 
-By default, `xybor-x/enum` provides [functions](#utility-functions) to parse or validate an `enum`, offering a **basic type safety**.
+By default, `xybor-x/enum` provides [functions][4] to parse or validate an `enum`, offering a **basic type safety**.
 
 However, it is still possible to accidentally create an invalid enum value, like so:
 
