@@ -157,7 +157,7 @@ func main() {
 
 ## ⭐ Safe enum
 
-`SafeEnum` defines a type-safe enum. Like `IntEnum`, it offers many built-in methods for cleaner and more maintainable code.
+`SafeEnum` defines a strong type-safe enum. Like `IntEnum`, it offers many built-in methods for cleaner and more maintainable code.
 
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
