@@ -21,25 +21,37 @@ go get -u github.com/xybor-x/enum
 
 ## Features
 
-|                           | [Basic enum][1]   | [Rich enum][2] | [Safe enum][3]     |
-| ------------------------- | ----------------- | -------------- | ------------------ |
-| [**Utility support**][4]  | Yes               | Yes            | Yes                |
-| [**Constant support**][5] | Yes               | Yes            | No                 |
-| **Enum type**             | Any integer types | `int`          | `interface`        |
-| **Enum value type**       | Any integer types | `int`          | `struct`           |
-| [**Serde**][6]            | No                | Full           | Serialization only |
-| [**Type safety**][7]      | Basic             | Basic          | Strong             |
+|                            | Basic enum[#][1]  | Rich enum[#][2] | Safe enum[#][3]    |
+| -------------------------- | ----------------- | --------------- | ------------------ |
+| **Built-in methods**       | No                | Yes             | Yes                |
+| **Constant support**[#][5] | Yes               | Yes             | No                 |
+| **Enum type**              | Any integer types | `int`           | `interface`        |
+| **Enum value type**        | Any integer types | `int`           | `struct`           |
+| **Serde**[#][6]            | No                | Full            | Serialization only |
+| **Type safety**[#][7]      | Basic             | Basic           | Strong             |
 
 **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
 
 ## Basic enum
+
+Basic enum is the simplest enum style. For handling this type of enum, refer to the [utility functions](#utility-functions).
+
+**Pros**:
+- Simplest.
+- Supports constant values.
+- Fully compatible with the `iota` enum style.
+
+**Cons**:
+- No built-in methods.
+- Lacks serialization and deserialization support.
+- Provides only **basic type safety**.
 
 ### Dynamic style
 
 ```go
 type Role int
 
-// Dynamic style only supports variable enum value.
+// Dynamic style doesn't support constant enum value.
 var (
     RoleUser  = enum.New[Role]("user")
     RoleAdmin = enum.New[Role]("admin")
@@ -47,7 +59,7 @@ var (
 )
 ```
 
-### Static style (constant support)
+### Static style
 
 ``` go
 type Role int
@@ -68,7 +80,16 @@ func init() {
 
 ## Rich enum
 
-`RichEnum` offers many helper methods for cleaner and more maintainable code.
+`RichEnum` offers many built-in methods for cleaner and more maintainable code.
+
+**Pros**:
+- Supports constant values.
+- Fully compatible with the `iota` enum style.
+- Provides many useful built-in methods.
+- Full serialization and deserialization support out of the box.
+
+**Cons**:
+- Provides only **basic type safety**.
 
 ```go
 // Define enum's underlying type.
@@ -98,9 +119,18 @@ func main() {
 
 ## Safe enum
 
-`SafeEnum` defines a type-safe enum. Like `RichEnum`, it offers many helper methods for cleaner and more maintainable code.
+`SafeEnum` defines a type-safe enum. Like `RichEnum`, it offers many built-in methods for cleaner and more maintainable code.
 
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
+
+**Pros**:
+- Provides **strong type safety**.
+- Provides many useful built-in methods.
+- Serialization support out of the box.
+
+**Cons**:
+- Does not support constant values.
+- Lacks deserialization support.
 
 ```go
 // Define enum's underlying type.
@@ -129,7 +159,7 @@ type User struct {
 
 ## Utility functions
 
-*All following functions can be used with any style of enum.*
+*All of the following functions can be used with any style of enum. Note that this differs from the built-in methods, which are tied to the enum object rather than being standalone functions.*
 
 ### FromString
 
