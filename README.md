@@ -291,7 +291,7 @@ func main() {
 
 ## 🔅 Type safety
 
-By default, `xybor-x/enum` provides [functions][4] to parse or validate an `enum`, offering a **basic type safety**.
+By default, `xybor-x/enum` provides [functions][4] to parse or validate an `enum`, offering **basic type safety**.
 
 However, it is still possible to accidentally create an invalid enum value, like so:
 
