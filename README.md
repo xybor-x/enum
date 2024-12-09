@@ -87,8 +87,7 @@ func init() {
 ```
 
 ## ⭐ Int enum
-
-`IntEnum` offers many built-in methods for cleaner and more maintainable code.
+`IntEnum` offers a set of built-in methods to simplify working with enums.
 
 **Pros 💪**
 - Supports constant values.
@@ -157,7 +156,7 @@ func main() {
 
 ## ⭐ Safe enum
 
-`SafeEnum` defines a strong type-safe enum. Like `IntEnum`, it offers many built-in methods for cleaner and more maintainable code.
+`SafeEnum` defines a strong type-safe enum. Like `IntEnum`, it provides a set of built-in methods to simplify working with enums.
 
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
