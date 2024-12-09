@@ -12,12 +12,13 @@
 **Elegant and powerful enums for Go with zero code generation!**
 
 [1]: #-basic-enum
-[2]: #-rich-enum
-[3]: #-safe-enum
-[4]: #-utility-functions
-[5]: #-constant-support
-[6]: #-serialization-and-deserialization
-[7]: #-type-safety
+[2]: #-int-enum
+[3]: #-struct-enum
+[4]: #-safe-enum
+[5]: #-utility-functions
+[6]: #-constant-support
+[7]: #-serialization-and-deserialization
+[8]: #-type-safety
 
 ## 🔧 Installation
 
@@ -28,25 +29,26 @@ go get -u github.com/xybor-x/enum
 
 ## 📋 Features
 
-|                               | Basic enum ([#][1]) | Rich enum ([#][2]) | Safe enum ([#][3]) |
-| ----------------------------- | ------------------- | ------------------ | ------------------ |
-| **Built-in methods**          | No                  | Yes                | Yes                |
-| **Constant support** ([#][5]) | Yes                 | Yes                | No                 |
-| **Enum type**                 | Any integer types   | `int`              | `interface`        |
-| **Enum value type**           | Any integer types   | `int`              | `struct`           |
-| **Serde** ([#][6])            | No                  | Full               | Serialization only |
-| **Type safety** ([#][7])      | Basic               | Basic              | Strong             |
+All enum types behave nearly consistently, so you can choose the style that best fits your use case without worrying about differences in functionality.
+
+|                            | Basic enum ([#][1]) | Int enum ([#][2]) | Struct Enum [#][3] | Safe enum ([#][4]) |
+| -------------------------- | ------------------- | ----------------- | ------------------ | ------------------ |
+| **Built-in methods**       | No                  | Yes               | Yes                | Yes                |
+| **Constant enum** ([#][6]) | Yes                 | Yes               | No                 | No                 |
+| **Enum type**              | Any integer types   | `int`             | `struct`           | `interface`        |
+| **Enum value type**        | Any integer types   | `int`             | `struct`           | `struct`           |
+| **Serde** ([#][7])         | No                  | Full              | Full               | Serialization only |
+| **Type safety** ([#][8])   | Basic               | Basic             | Good               | Strong             |
 
 ❗ **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
 
 ## ⭐ Basic enum
 
-Basic enum is the simplest enum style. For handling this type of enum, refer to the [utility functions][4].
+Basic enum is the simplest type, but since it has no built-in method, please refer to the [utility functions][5] for handling this enum.
 
 **Pros 💪**
 - Simplest.
 - Supports constant values.
-- Fully compatible with the `iota` enum style.
 
 **Cons 👎**
 - No built-in methods.
@@ -84,14 +86,12 @@ func init() {
 }
 ```
 
+## ⭐ Int enum
 
-## ⭐ Rich enum
-
-`RichEnum` offers many built-in methods for cleaner and more maintainable code.
+`IntEnum` offers many built-in methods for cleaner and more maintainable code.
 
 **Pros 💪**
 - Supports constant values.
-- Fully compatible with the `iota` enum style.
 - Provides many useful built-in methods.
 - Full serialization and deserialization support out of the box.
 
@@ -102,8 +102,8 @@ func init() {
 // Define enum's underlying type.
 type role any
 
-// Create a RichEnum type for roles.
-type Role = enum.RichEnum[role] // NOTE: It must use type alias instead of type definition.
+// Create a IntEnum type for roles.
+type Role = enum.IntEnum[role] // NOTE: It must use type alias instead of type definition.
 
 // Basic enum definition styles can also be used here. 
 const (
@@ -118,7 +118,45 @@ func init() {
 }
 
 func main() {
-    // RichEnum has many built-in methods for handling enum easier.
+    // IntEnum has many built-in methods for handling enum easier.
+    data, _ := json.Marshal(RoleUser) // Output: "user"
+    fmt.Println(RoleAdmin.IsValid())  // Output: true
+}
+```
+
+## ⭐ Struct enum
+
+`StructEnum` provides a medium type-safe enum, which is better than `IntEnum`, but not as good as `SafeEnum`. Like `IntEnum`, it provides a set of built-in methods to simplify working with enums.
+
+**Pros 💪**
+- Provides many useful built-in methods.
+- Full serialization and deserialization support out of the box.
+- Provides **good type safety**.
+
+**Cons 👎**
+- Does not support constant values.
+
+```go
+// Define enum's underlying type.
+type role any
+
+// Create a IntEnum type for roles.
+type Role = enum.IntEnum[role] // NOTE: It must use type alias instead of type definition.
+
+// Basic enum definition styles can also be used here. 
+const (
+    RoleUser Role = iota
+    RoleAdmin
+)
+
+func init() {
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleAdmin, "admin")
+    enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+}
+
+func main() {
+    // IntEnum has many built-in methods for handling enum easier.
     data, _ := json.Marshal(RoleUser) // Output: "user"
     fmt.Println(RoleAdmin.IsValid())  // Output: true
 }
@@ -126,7 +164,7 @@ func main() {
 
 ## ⭐ Safe enum
 
-`SafeEnum` defines a type-safe enum. Like `RichEnum`, it offers many built-in methods for cleaner and more maintainable code.
+`SafeEnum` defines a type-safe enum. Like `IntEnum`, it offers many built-in methods for cleaner and more maintainable code.
 
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
@@ -249,7 +287,7 @@ Some static analysis tools support checking for exhaustive `switch` statements i
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
-❗ *Note that NOT ALL enum styles support both serialization and deserialization. Refer to the [features/serde](#-features).*
+❗ *Note that NOT ALL enum styles support both serialization and deserialization, please refer to the [features/serde](#-features).*
 
 Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
@@ -291,7 +329,7 @@ func main() {
 
 ## 🔅 Type safety
 
-By default, `xybor-x/enum` provides [functions][4] to parse or validate an `enum`, offering **basic type safety**.
+By default, `xybor-x/enum` provides [functions][5] to parse and validate an `enum`, offering **basic type safety**.
 
 However, it is still possible to accidentally create an invalid enum value, like so:
 
@@ -299,4 +337,10 @@ However, it is still possible to accidentally create an invalid enum value, like
 moderator := Role(42) // Invalid enum value
 ```
 
-The [`SafeEnum`][3] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` without explicitly using the `safeenum.New` function.
+The [`StructEnum`][3] offers **good type safety**, which prevents most accidental creation of invalid enum values, but still allows for invalid values due to zero initialization:
+
+```go
+role := Role{} // Normally, enums are not created in this way, except for unmarshalling purposes.
+```
+
+The [`SafeEnum`][4] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` without explicitly using the `safeenum.New` function.
