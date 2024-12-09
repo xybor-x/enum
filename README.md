@@ -5,6 +5,8 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/xybor-x/enum?color=blue)](https://github.com/xybor-x/enum)
 
 
+![Golang](./.github/golang-icon.png)
+
 # ⚙️ Go Enum
 
 **Elegant and powerful enums for Go with zero code generation!**
