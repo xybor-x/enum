@@ -45,7 +45,7 @@ All enum types behave nearly consistently, so you can choose the style that best
 
 ## 🔍 Recommendations
 
-|                        | Basic enum | Int enum                | Struct Enum              | Safe enum |
+|                        | Basic enum | Int enum                | Struct enum              | Safe enum |
 | ---------------------- | ---------- | ----------------------- | ------------------------ | --------- |
 | **Simplified use**     | Yes        | Maybe                   | Maybe                    | No        |
 | **General use**        | No         | Yes (constant required) | Yes (type-safe required) | No        |
