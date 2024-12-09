@@ -10,7 +10,8 @@ import (
 	"github.com/xybor-x/enum/internal/core"
 )
 
-// SafeEnum defines a type-safe enum.
+// SafeEnum defines a type-safe enum. Like RichEnum, it provides a set of built-
+// in methods to simplify working with enums.
 //
 // The SafeEnum enforces strict type safety, ensuring that only predefined enum
 // values are allowed. It prevents the accidental creation of new enum types,
@@ -18,7 +19,7 @@ import (
 //
 // Note: This interface does not include deserialization capabilities. If you
 // require serialization and deserialization functionality, consider using
-// enum.SerdeWrap, which provides additional support for those operations.
+// enum.Serde, which provides additional support for those operations.
 type SafeEnum[unsafeEnum any] interface {
 	fmt.Stringer
 	fmt.GoStringer
@@ -42,6 +43,7 @@ func (e safeEnum[unsafeEnum, P]) MarshalJSON() ([]byte, error) {
 	return enum.MarshalJSON[SafeEnum[unsafeEnum]](e)
 }
 
+// DO NOT USE
 func (e *safeEnum[unsafeEnum, P]) UnmarshalJSON([]byte) error {
 	return errors.New("not implemented")
 }
@@ -50,6 +52,7 @@ func (e safeEnum[unsafeEnum, P]) Value() (driver.Value, error) {
 	return enum.ValueSQL[SafeEnum[unsafeEnum]](e)
 }
 
+// DO NOT USE
 func (e *safeEnum[unsafeEnum, P]) Scan(data any) error {
 	return errors.New("not implemented")
 }
