@@ -1,6 +1,6 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/xybor-x/enum.svg)](https://pkg.go.dev/github.com/xybor-x/enum)
 
-# Go Enum
+# ⚙️ Go Enum
 
 **Elegant and powerful enums for Go with zero code generation!**
 
@@ -12,14 +12,14 @@
 [6]: #serialization-and-deserialization
 [7]: #type-safety
 
-## Installation
+## 🔧 Installation
 
 Install the package via `go get`:
 ```sh
 go get -u github.com/xybor-x/enum
 ```
 
-## Features
+## 📋 Features
 
 |                               | Basic enum ([#][1]) | Rich enum ([#][2]) | Safe enum ([#][3]) |
 | ----------------------------- | ------------------- | ------------------ | ------------------ |
@@ -30,18 +30,18 @@ go get -u github.com/xybor-x/enum
 | **Serde** ([#][6])            | No                  | Full               | Serialization only |
 | **Type safety** ([#][7])      | Basic               | Basic              | Strong             |
 
-**Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
+❗ **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
 
-## Basic enum
+## ⭐ Basic enum
 
 Basic enum is the simplest enum style. For handling this type of enum, refer to the [utility functions](#utility-functions).
 
-**Pros**:
+**Pros 💪**:
 - Simplest.
 - Supports constant values.
 - Fully compatible with the `iota` enum style.
 
-**Cons**:
+**Cons 👎**:
 - No built-in methods.
 - Lacks serialization and deserialization support.
 - Provides only **basic type safety**.
@@ -78,17 +78,17 @@ func init() {
 ```
 
 
-## Rich enum
+## ⭐ Rich enum
 
 `RichEnum` offers many built-in methods for cleaner and more maintainable code.
 
-**Pros**:
+**Pros 💪**:
 - Supports constant values.
 - Fully compatible with the `iota` enum style.
 - Provides many useful built-in methods.
 - Full serialization and deserialization support out of the box.
 
-**Cons**:
+**Cons 👎**:
 - Provides only **basic type safety**.
 
 ```go
@@ -117,18 +117,18 @@ func main() {
 }
 ```
 
-## Safe enum
+## ⭐ Safe enum
 
 `SafeEnum` defines a type-safe enum. Like `RichEnum`, it offers many built-in methods for cleaner and more maintainable code.
 
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
-**Pros**:
+**Pros 💪**:
 - Provides **strong type safety**.
 - Provides many useful built-in methods.
 - Serialization support out of the box.
 
-**Cons**:
+**Cons 👎**:
 - Does not support constant values.
 - Lacks deserialization support.
 
@@ -157,7 +157,7 @@ type User struct {
 }
 ```
 
-## Utility functions
+## 💡 Utility functions
 
 *All of the following functions can be used with any style of enum. Note that this differs from the built-in methods, which are tied to the enum object rather than being standalone functions.*
 
@@ -234,11 +234,11 @@ for _, role := range enum.All[Role]() {
 // Role: admin
 ```
 
-## Constant support
+## ✏️ Constant support
 
 Some static analysis tools support checking for exhaustive `switch` statements in constant enums. By choosing an `enum` with constant support, you can enable this functionality in these tools.
 
-## Serialization and deserialization
+## ✏️ Serialization and deserialization
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
