@@ -24,7 +24,7 @@ go get -u github.com/xybor-x/enum
 |                           | [Basic enum][1]   | [Rich enum][2] | [Safe enum][3]     |
 | ------------------------- | ----------------- | -------------- | ------------------ |
 | [**Utility support**][4]  | Yes               | Yes            | Yes                |
-| [**Constant-support**][5] | Yes               | Yes            | No                 |
+| [**Constant support**][5] | Yes               | Yes            | No                 |
 | **Enum type**             | Any integer types | `int`          | `interface`        |
 | **Enum value type**       | Any integer types | `int`          | `struct`           |
 | [**Serde**][6]            | No                | Full           | Serialization only |
