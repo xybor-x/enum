@@ -5,11 +5,7 @@ import (
 	"fmt"
 )
 
-// RichEnum provides a set of utility methods to simplify working with enums.
-//
-// It includes various helper functions for operations like serialization,
-// deserialization, string conversion, and validation, making it easier to
-// manage and manipulate enum values across your codebase.
+// RichEnum provides a set of built-in methods to simplify working with enums.
 type RichEnum[dummyEnum any] int
 
 func (e RichEnum[dummyEnum]) IsValid() bool {

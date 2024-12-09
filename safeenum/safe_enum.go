@@ -10,7 +10,8 @@ import (
 	"github.com/xybor-x/enum/internal/core"
 )
 
-// SafeEnum defines a type-safe enum.
+// SafeEnum defines a type-safe enum. Like RichEnum, it provides a set of built-
+// in methods to simplify working with enums.
 //
 // The SafeEnum enforces strict type safety, ensuring that only predefined enum
 // values are allowed. It prevents the accidental creation of new enum types,
@@ -18,7 +19,7 @@ import (
 //
 // Note: This interface does not include deserialization capabilities. If you
 // require serialization and deserialization functionality, consider using
-// enum.SerdeWrap, which provides additional support for those operations.
+// enum.Serde, which provides additional support for those operations.
 type SafeEnum[unsafeEnum any] interface {
 	fmt.Stringer
 	fmt.GoStringer
