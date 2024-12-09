@@ -91,10 +91,10 @@ func ExampleSerde() {
 	// {"id":1,"name":"tester","role":"admin"}
 }
 
-func ExampleRichEnum() {
+func ExampleIntEnum() {
 	// Define a generic enum type
 	type role any
-	type Role = enum.RichEnum[role]
+	type Role = enum.IntEnum[role]
 
 	// Define enum values for Role using iota
 	const (
@@ -109,7 +109,48 @@ func ExampleRichEnum() {
 		_ = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
-	// As Role is a RichEnum, it can utilize methods from RichEnum, including
+	// As Role is a IntEnum, it can utilize methods from IntEnum, including
+	// utility functions and serde operations.
+	fmt.Println(RoleUser.GoString()) // 0 (user)
+	fmt.Println(RoleUser.IsValid())  // true
+
+	// Define a struct that includes the Role enum.
+	type User struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+		Role Role   `json:"role"`
+	}
+
+	// Serialize the User struct to JSON.
+	user1 := User{ID: 0, Name: "tester", Role: RoleAdmin}
+	data, _ := json.Marshal(user1)
+	fmt.Println(string(data))
+
+	// Deserialize JSON back into a User struct and print the Role.
+	user2 := User{}
+	json.Unmarshal(data, &user2)
+	fmt.Println(user2.Role)
+
+	// Output:
+	// 0 (user)
+	// true
+	// {"id":0,"name":"tester","role":"admin"}
+	// admin
+}
+
+func ExampleStructEnum() {
+	// Define a generic enum type
+	type underlyingRole string
+	type Role = enum.StructEnum[underlyingRole]
+
+	// Define enum values for Role using iota
+	var (
+		RoleUser  = enum.NewStruct[underlyingRole]("user")
+		RoleAdmin = enum.NewStruct[underlyingRole]("admin")
+		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+	)
+
+	// As Role is a StructEnum, it can utilize methods from StructEnum, including
 	// utility functions and serde operations.
 	fmt.Println(RoleUser.GoString()) // 0 (user)
 	fmt.Println(RoleUser.IsValid())  // true

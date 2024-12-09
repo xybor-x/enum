@@ -305,7 +305,7 @@ func TestEnumScanSQL(t *testing.T) {
 
 func TestEnumSQL(t *testing.T) {
 	type role any
-	type Role = enum.RichEnum[role]
+	type Role = enum.IntEnum[role]
 
 	var (
 		RoleUser = enum.New[Role]("user")
@@ -337,7 +337,7 @@ func TestEnumSQL(t *testing.T) {
 
 func TestEnumJSON(t *testing.T) {
 	type role any
-	type Role = enum.RichEnum[role]
+	type Role = enum.IntEnum[role]
 
 	var (
 		RoleUser = enum.New[Role]("user")

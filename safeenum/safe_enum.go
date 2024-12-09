@@ -10,8 +10,8 @@ import (
 	"github.com/xybor-x/enum/internal/core"
 )
 
-// SafeEnum defines a type-safe enum. Like RichEnum, it provides a set of built-
-// in methods to simplify working with enums.
+// SafeEnum defines a strong type-safe enum. Like IntEnum, it provides a set of
+// built-in methods to simplify working with enums.
 //
 // The SafeEnum enforces strict type safety, ensuring that only predefined enum
 // values are allowed. It prevents the accidental creation of new enum types,
