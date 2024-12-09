@@ -41,12 +41,12 @@ go get -u github.com/xybor-x/enum
 
 Basic enum is the simplest enum style. For handling this type of enum, refer to the [utility functions][4].
 
-**Pros 💪**:
+**Pros 💪**
 - Simplest.
 - Supports constant values.
 - Fully compatible with the `iota` enum style.
 
-**Cons 👎**:
+**Cons 👎**
 - No built-in methods.
 - Lacks serialization and deserialization support.
 - Provides only **basic type safety**.
@@ -87,13 +87,13 @@ func init() {
 
 `RichEnum` offers many built-in methods for cleaner and more maintainable code.
 
-**Pros 💪**:
+**Pros 💪**
 - Supports constant values.
 - Fully compatible with the `iota` enum style.
 - Provides many useful built-in methods.
 - Full serialization and deserialization support out of the box.
 
-**Cons 👎**:
+**Cons 👎**
 - Provides only **basic type safety**.
 
 ```go
@@ -128,12 +128,12 @@ func main() {
 
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
-**Pros 💪**:
+**Pros 💪**
 - Provides **strong type safety**.
 - Provides many useful built-in methods.
 - Serialization support out of the box.
 
-**Cons 👎**:
+**Cons 👎**
 - Does not support constant values.
 - Lacks deserialization support.
 
