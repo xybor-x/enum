@@ -223,7 +223,7 @@ fmt.Println(enum.ToInt(Role(42)))   // panic
 
 ### All
 
-`All` returns a slice containing all enum values of a specific type.
+`All` returns a slice containing all enum values of a specific enum type.
 
 ```go
 for _, role := range enum.All[Role]() {
