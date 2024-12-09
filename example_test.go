@@ -140,13 +140,13 @@ func ExampleIntEnum() {
 
 func ExampleStructEnum() {
 	// Define a generic enum type
-	type unsafeRole any
-	type Role = enum.StructEnum[unsafeRole]
+	type underlyingRole any
+	type Role = enum.StructEnum[underlyingRole]
 
 	// Define enum values for Role using iota
 	var (
-		RoleUser  = enum.NewStruct[unsafeRole]("user")
-		RoleAdmin = enum.NewStruct[unsafeRole]("admin")
+		RoleUser  = enum.NewStruct[underlyingRole]("user")
+		RoleAdmin = enum.NewStruct[underlyingRole]("admin")
 		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 

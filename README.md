@@ -100,10 +100,10 @@ func init() {
 
 ```go
 // Define enum's underlying type.
-type role any
+type underlyingRole any
 
 // Create a IntEnum type for roles.
-type Role = enum.IntEnum[role] // NOTE: It must use type alias instead of type definition.
+type Role = enum.IntEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.
 
 // Basic enum definition styles can also be used here. 
 const (
@@ -138,25 +138,18 @@ func main() {
 
 ```go
 // Define enum's underlying type.
-type role any
+type underlyingRole any
 
-// Create a IntEnum type for roles.
-type Role = enum.IntEnum[role] // NOTE: It must use type alias instead of type definition.
+// Create a StructEnum type for roles.
+type Role = enum.StructEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.
 
-// Basic enum definition styles can also be used here. 
-const (
-    RoleUser Role = iota
-    RoleAdmin
+var (
+    RoleUser  = enum.NewStruct[underlyingRole]("user")
+    RoleAdmin = enum.NewStruct[underlyingRole]("admin")
 )
 
-func init() {
-    enum.Map(RoleUser, "user")
-    enum.Map(RoleAdmin, "admin")
-    enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
-}
-
 func main() {
-    // IntEnum has many built-in methods for handling enum easier.
+    // StructEnum has many built-in methods for handling enum easier.
     data, _ := json.Marshal(RoleUser) // Output: "user"
     fmt.Println(RoleAdmin.IsValid())  // Output: true
 }
@@ -179,17 +172,17 @@ The `SafeEnum` enforces strict type safety, ensuring that only predefined enum v
 
 ```go
 // Define enum's underlying type.
-type unsafeRole any
+type underlyingRole any
 
 // Create a SafeEnum type for roles.
-type Role = safeenum.SafeEnum[unsafeRole]
+type Role = safeenum.SafeEnum[underlyingRole]
 
 // Define specific enum values for the Role type.
 // The second type parameter is known as the positioner. Note that each enum
 // must have a unique positioner; no two enums can share the same positioner.
 var (
-    RoleUser  = safeenum.New[unsafeRole, safeenum.P0]("user")
-    RoleAdmin = safeenum.New[unsafeRole, safeenum.P1]("admin")
+    RoleUser  = safeenum.New[underlyingRole, safeenum.P0]("user")
+    RoleAdmin = safeenum.New[underlyingRole, safeenum.P1]("admin")
     _         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 )
 

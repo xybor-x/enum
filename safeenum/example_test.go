@@ -10,17 +10,17 @@ import (
 
 func ExampleSafeEnum() {
 	// Define enum's underlying type.
-	type unsafeRole any
+	type underlyingRole any
 
 	// Create a SafeEnum type for roles.
-	type Role = safeenum.SafeEnum[unsafeRole]
+	type Role = safeenum.SafeEnum[underlyingRole]
 
 	// Define specific enum values for the Role type.
 	// The second type parameter is known as the positioner. Note that each enum
 	// must have a unique positioner; no two enums can share the same positioner.
 	var (
-		RoleUser  = safeenum.New[unsafeRole, safeenum.P0]("user")
-		RoleAdmin = safeenum.New[unsafeRole, safeenum.P1]("admin")
+		RoleUser  = safeenum.New[underlyingRole, safeenum.P0]("user")
+		RoleAdmin = safeenum.New[underlyingRole, safeenum.P1]("admin")
 		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
