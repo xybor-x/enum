@@ -140,7 +140,7 @@ func ExampleIntEnum() {
 
 func ExampleStructEnum() {
 	// Define a generic enum type
-	type underlyingRole any
+	type underlyingRole string
 	type Role = enum.StructEnum[underlyingRole]
 
 	// Define enum values for Role using iota

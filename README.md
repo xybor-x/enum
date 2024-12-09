@@ -147,7 +147,7 @@ func main() {
 
 ```go
 // Define enum's underlying type.
-type underlyingRole any
+type underlyingRole string
 
 // Create a StructEnum type for roles.
 type Role = enum.StructEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.

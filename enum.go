@@ -34,7 +34,7 @@ import (
 //     initialization or other safe execution points to avoid race conditions.
 func New[T common.Integral](s string) T {
 	id := core.GetAvailableEnumValue[T]()
-	return Map(T(id), s)
+	return core.MapAny(id, T(id), s)
 }
 
 // Map associates a number enum with a string representation.
@@ -45,8 +45,8 @@ func New[T common.Integral](s string) T {
 //
 // Note that this method is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
-func Map[T common.Integral](value T, s string) T {
-	return core.MapAny(int64(value), value, s)
+func Map[T any](value T, s string) T {
+	return core.MapAny(core.GetAvailableEnumValue[T](), value, s)
 }
 
 // Finalize prevents any further creation of new enum values.

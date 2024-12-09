@@ -19,11 +19,15 @@ import (
 // Unlike SafeEnum, StructEnum supports both serialization and deserialization
 // out of the box.
 type StructEnum[dummyEnum any] struct {
-	inner string
+	inner dummyEnum
 }
 
-func NewStruct[dummyEnum any](s string) StructEnum[dummyEnum] {
-	return core.MapAny(core.GetAvailableEnumValue[StructEnum[dummyEnum]](), StructEnum[dummyEnum]{inner: s}, s)
+func NewStruct[dummyEnum ~string](inner dummyEnum) StructEnum[dummyEnum] {
+	return core.MapAny(core.GetAvailableEnumValue[StructEnum[dummyEnum]](), StructEnum[dummyEnum]{inner: inner}, string(inner))
+}
+
+func (e StructEnum[dummyEnum]) Inner() dummyEnum {
+	return e.inner
 }
 
 func (e StructEnum[dummyEnum]) IsValid() bool {
@@ -59,5 +63,5 @@ func (e StructEnum[dummyEnum]) GoString() string {
 		return "<<undefined>>"
 	}
 
-	return fmt.Sprintf("%d (%s)", ToInt(e), e.inner)
+	return fmt.Sprintf("%d (%s)", ToInt(e), ToString(e))
 }
