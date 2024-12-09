@@ -126,7 +126,7 @@ func main() {
 
 ## ⭐ Struct enum
 
-`StructEnum` provides a medium type-safe enum, which is better than `IntEnum`, but not as good as `SafeEnum`. Like `IntEnum`, it provides a set of built-in methods to simplify working with enums.
+`StructEnum` provides a good type-safe enum, which is better than `IntEnum`, but not as good as `SafeEnum`. Like `IntEnum`, it provides a set of built-in methods to simplify working with enums.
 
 **Pros 💪**
 - Provides many useful built-in methods.
