@@ -111,7 +111,7 @@ func init() {
 }
 
 func main() {
-    // RichEnum has many utility methods for handling enum easier.
+    // RichEnum has many built-in methods for handling enum easier.
     data, _ := json.Marshal(RoleUser) // Output: "user"
     fmt.Println(RoleAdmin.IsValid())  // Output: true
 }
