@@ -21,14 +21,14 @@ go get -u github.com/xybor-x/enum
 
 ## Features
 
-|                            | Basic enum[#][1]  | Rich enum[#][2] | Safe enum[#][3]    |
-| -------------------------- | ----------------- | --------------- | ------------------ |
-| **Built-in methods**       | No                | Yes             | Yes                |
-| **Constant support**[#][5] | Yes               | Yes             | No                 |
-| **Enum type**              | Any integer types | `int`           | `interface`        |
-| **Enum value type**        | Any integer types | `int`           | `struct`           |
-| **Serde**[#][6]            | No                | Full            | Serialization only |
-| **Type safety**[#][7]      | Basic             | Basic           | Strong             |
+|                               | Basic enum ([#][1]) | Rich enum ([#][2]) | Safe enum ([#][3]) |
+| ----------------------------- | ------------------- | ------------------ | ------------------ |
+| **Built-in methods**          | No                  | Yes                | Yes                |
+| **Constant support** ([#][5]) | Yes                 | Yes                | No                 |
+| **Enum type**                 | Any integer types   | `int`              | `interface`        |
+| **Enum value type**           | Any integer types   | `int`              | `struct`           |
+| **Serde** ([#][6])            | No                  | Full               | Serialization only |
+| **Type safety** ([#][7])      | Basic               | Basic              | Strong             |
 
 **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
 
