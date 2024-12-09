@@ -44,7 +44,7 @@ All enum types behave nearly consistently, so you can choose the style that best
 
 ## ⭐ Basic enum
 
-Basic enum is the simplest type, but since it has no built-in method, please refer to the [utility functions][5] for handling this enum.
+Basic enum is the simplest type, but since it has no built-in methods, please refer to the [utility functions][5] for handling this enum.
 
 **Pros 💪**
 - Simplest.
