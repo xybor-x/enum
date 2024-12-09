@@ -247,7 +247,7 @@ Some static analysis tools support checking for exhaustive `switch` statements i
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
-*Note that NOT ALL enum styles support both serialization and deserialization. Refer to the [features/serde](#-features).*
+❗ *Note that NOT ALL enum styles support both serialization and deserialization. Refer to the [features/serde](#-features).*
 
 Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
