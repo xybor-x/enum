@@ -5,7 +5,7 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/xybor-x/enum?color=blue)](https://github.com/xybor-x/enum)
 
 
-![Golang](./.github/golang-icon.png)
+![Golang](./.github/golang-icon-3.png)
 
 # ⚙️ Go Enum
 
