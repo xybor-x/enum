@@ -3,6 +3,7 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
+	"reflect"
 
 	"github.com/xybor-x/enum/internal/core"
 )
@@ -18,17 +19,48 @@ type SafeEnum[underlyingEnum any] struct {
 	inner string
 }
 
+type safeEnumer interface {
+	newsafeenum(s string) any
+}
+
 // NewSafe creates a new StructEnum with its string representation. The library
 // automatically assigns the smallest available number to the enum.
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
-func NewSafe[underlyingEnum any](inner string) SafeEnum[underlyingEnum] {
-	return core.MapAny(
-		core.GetAvailableEnumValue[SafeEnum[underlyingEnum]](),
-		SafeEnum[underlyingEnum]{inner: inner},
-		inner,
-	)
+func NewSafe[T safeEnumer](inner string) T {
+	var defaultT T
+	return defaultT.newsafeenum(inner).(T)
+}
+
+// NewExtendedSafe helps to initialize the extended safe enum.
+//
+// Note that this function is not thread-safe and should only be called during
+// initialization or other safe execution points to avoid race conditions.
+func NewExtendedSafe[T safeEnumer](s string) T {
+	var t T
+
+	tvalue := reflect.ValueOf(&t).Elem()
+
+	for i := 0; i < tvalue.NumField(); i++ {
+		fieldType := reflect.TypeOf(t).Field(i)
+		if !fieldType.Anonymous {
+			continue
+		}
+
+		if !fieldType.Type.Implements(reflect.TypeOf((*safeEnumer)(nil)).Elem()) {
+			continue
+		}
+
+		fieldValue := tvalue.FieldByName(fieldType.Name)
+
+		inner := fieldValue.Interface().(safeEnumer).newsafeenum(s)
+		fieldValue.Set(reflect.ValueOf(inner))
+
+		return core.MapAny(core.GetAvailableEnumValue[T](), t, s)
+	}
+
+	panic("something wrong")
 }
 
 func (e SafeEnum[underlyingEnum]) IsValid() bool {
@@ -65,4 +97,14 @@ func (e SafeEnum[underlyingEnum]) GoString() string {
 	}
 
 	return fmt.Sprintf("%d (%s)", ToInt(e), e.inner)
+}
+
+// WARNING: Only use this function if you fully understand its behavior.
+// It might cause unexpected results if used improperly.
+func (e SafeEnum[underlyingEnum]) newsafeenum(s string) any {
+	return core.MapAny(
+		core.GetAvailableEnumValue[SafeEnum[underlyingEnum]](),
+		SafeEnum[underlyingEnum]{inner: s},
+		s,
+	)
 }

@@ -89,10 +89,10 @@ func init() {
 
 ```go
 // Define enum's underlying type.
-type underlyingRole any
+type role any
 
 // Create a WrapEnum type for roles.
-type Role = enum.WrapEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.
+type Role = enum.WrapEnum[role] // NOTE: It must use type alias instead of type definition.
 
 const (
     RoleUser Role = iota
@@ -133,14 +133,14 @@ The `SafeEnum` enforces strict type safety, ensuring that only predefined enum v
 
 ```go
 // Define enum's underlying type.
-type underlyingRole any
+type role any
 
 // Create a SafeEnum type for roles.
-type Role = enum.SafeEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.
+type Role = enum.SafeEnum[role] // NOTE: It must use type alias instead of type definition.
 
 var (
-    RoleUser  = enum.NewSafe[underlyingRole]("user")
-    RoleAdmin = enum.NewSafe[underlyingRole]("admin")
+    RoleUser  = enum.NewSafe[Role]("user")
+    RoleAdmin = enum.NewSafe[Role]("admin")
 )
 
 func main() {
@@ -256,16 +256,9 @@ moderator := Role("moderator") // Compile-time error
 
 ## 🔅 Extensible
 
-> [!TIP]
-> There are two ways to extend an enum type:
-> - **For type definition enum**: Extend it directly.
-> - **For type alias enum**: Embed it as a field in a struct, then add methods to the struct.
-> 
-> [What's in an (Alias) Name?](https://go.dev/blog/alias-names)
-
 ### Extend basic enum
 
-Since this is a type definition enum, you can easily extend it by directly adding additional methods.
+Since this enum is just a primitive type and does not have built-in methods, you can easily extend it by directly adding additional methods.
 
 ```go
 type Role int
@@ -290,33 +283,30 @@ func (r Role) HasPermission() bool {
 
 ### Extend WrapEnum
 
-> [!TIP]
-> You should consider extending [Basic enum](#extend-basic-enum) or [Safe enum](#extend-safeenum) instead.
+`WrapEnum` has many predefined methods. The only way to retain these methods while extending it is to wrap it as an embedded field in another struct.
 
-Since this is a type alias enum, the only way to maintain its built-in methods while still extending the enum is to wrap it as an embedded field in a struct.
+However, this approach will break the constant-support property of the `WrapEnum` because Go does not support constants for structs.
 
-However, this approach will break the constant-support property of the `WrapEnum`.
+You should consider extending [Basic enum](#extend-basic-enum) or [Safe enum](#extend-safeenum) instead.
 
 ### Extend SafeEnum
 
-Since this is a type alias enum, embedding it inside a struct allows you to maintain its predefined built-in methods while still being able to extend it.
+`SafeEnum` has many predefined methods. The only way to retain these methods while extending it is to wrap it as an embedded field in another struct.
+
+`xybor-x/enum` provides the `NewExtendedSafe` function to help create a wrapper of SafeEnum.
 
 ```go
-type underlyingRole any
-
-type Role struct {
-    enum.SafeEnum[underlyingRole]
-}
+type role any
+type Role struct { enum.SafeEnum[role] }
 
 var (
-    RoleUser  = Role{enum.NewSafe[underlyingRole]("user")}
-    RoleMod   = Role{enum.NewSafe[underlyingRole]("mod")}
-    RoleAdmin = Role{enum.NewSafe[underlyingRole]("admin")}
-    enum.Finalize[enum.SafeEnum[underlyingRole]]()
+    RoleUser  = enum.NewExtendedSafe[Role]("user")
+    RoleMod   = enum.NewExtendedSafe[Role]("mod")
+    RoleAdmin = enum.NewExtendedSafe[Role]("admin")
+    _         = enum.Finalize[Role]()
 )
 
 func (r Role) HasPermission() bool {
     return r == RoleMod || r == RoleAdmin
 }
-
 ```
