@@ -129,9 +129,9 @@ The `SafeEnum` enforces strict type safety, ensuring that only predefined enum v
 
 ```go
 // Define enum's underlying type.
-type underlyingRole string
+type underlyingRole any
 
-// Create a StructEnum type for roles.
+// Create a SafeEnum type for roles.
 type Role = enum.SafeEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.
 
 var (
