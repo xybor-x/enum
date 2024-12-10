@@ -33,8 +33,6 @@ go get -u github.com/xybor-x/enum
 
 All of the following enum types are compatible with the APIs provided by `xybor-x/enum`.
 
-***Recommnedation**: Focus on [WrapEnum][2] and [SafeEnum][3].*
-
 |                                                | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
 | ---------------------------------------------- | ------------------- | ------------------ | ------------------ |
 | **Built-in methods**                           | No                  | **Yes**            | **Yes**            |
@@ -42,7 +40,9 @@ All of the following enum types are compatible with the APIs provided by `xybor-
 | **Serialization and deserialization** ([#][6]) | No                  | **Yes**            | **Yes**            |
 | **Type safety** ([#][7])                       | No                  | Basic              | **Strong**         |
 
-❗ **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
+> [!CAUTION]
+> Enum definitions are not thread-safe.
+> Therefore, they should be finalized during initialization (at the global scope).
 
 
 ## ⭐ Basic enum
@@ -152,7 +152,8 @@ func main() {
 
 ## 💡 Utility functions
 
-*All of the following functions can be used with any style of enum. Note that this differs from the built-in methods, which are tied to the enum object rather than being standalone functions.*
+> [!NOTE]
+> All of the following functions can be used with any type of enum.
 
 ### FromString
 
@@ -233,7 +234,8 @@ Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
 - `SQL`: Implements `driver.Valuer` and `sql.Scanner`.
 
-❗ *Note that NOT ALL enum types support serde operations, please refer to the [features](#-features).*
+> [!NOTE] 
+> Not all enum types support serde operations, please refer to the [features](#-features).
 
 ## 🔅 Type safety
 
@@ -250,4 +252,71 @@ The [SafeEnum][3] provides **strong type safety**, ensuring that only predefined
 ```go
 moderator := Role(42)          // Compile-time error
 moderator := Role("moderator") // Compile-time error
+```
+
+## 🔅 Extensible
+
+> [!TIP]
+> There are two ways to extend an enum type:
+> - **For type definition enum**: Extend it directly.
+> - **For type alias enum**: Embed it as a field in a struct, then add methods to the struct.
+> 
+> [What's in an (Alias) Name?](https://go.dev/blog/alias-names)
+
+### Extend basic enum
+
+Since this is a type definition enum, you can easily extend it by directly adding additional methods.
+
+```go
+type Role int
+
+const (
+    RoleUser Role = iota
+    RoleMod
+    RoleAdmin
+)
+
+func init() {
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleMod, "mod")
+    enum.Map(RoleAdmin, "admin")
+    enum.Finalize[Role]()
+}
+
+func (r Role) HasPermission() bool {
+    return r == RoleMod || r == RoleAdmin
+}
+```
+
+### Extend WrapEnum
+
+> [!TIP]
+> You should consider extending [Basic enum](#extend-basic-enum) or [Safe enum](#extend-safeenum) instead.
+
+Since this is a type alias enum, the only way to maintain its built-in methods while still extending the enum is to wrap it as an embedded field in a struct.
+
+However, this approach will break the constant-support property of the `WrapEnum`.
+
+### Extend SafeEnum
+
+Since this is a type alias enum, embedding it inside a struct allows you to maintain its predefined built-in methods while still being able to extend it.
+
+```go
+type underlyingRole any
+
+type Role struct {
+    enum.SafeEnum[underlyingRole]
+}
+
+var (
+    RoleUser  = Role{enum.NewSafe[underlyingRole]("user")}
+    RoleMod   = Role{enum.NewSafe[underlyingRole]("mod")}
+    RoleAdmin = Role{enum.NewSafe[underlyingRole]("admin")}
+    enum.Finalize[enum.SafeEnum[underlyingRole]]()
+)
+
+func (r Role) HasPermission() bool {
+    return r == RoleMod || r == RoleAdmin
+}
+
 ```
