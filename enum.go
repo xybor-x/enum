@@ -14,6 +14,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/xybor-x/enum/internal/common"
 	"github.com/xybor-x/enum/internal/core"
@@ -30,23 +31,50 @@ import (
 // Note:
 //   - Enums created with this function are variables, not constants. If you
 //     need a constant enum, declare it explicitly and use enum.Map() instead.
-//   - This method is not thread-safe and should only be called during
+//   - This function is not thread-safe and should only be called during
 //     initialization or other safe execution points to avoid race conditions.
 func New[T common.Integral](s string) T {
 	id := core.GetAvailableEnumValue[T]()
 	return core.MapAny(id, T(id), s)
 }
 
-// Map associates a number enum with a string representation.
+// Map associates an enum with its numeric and string representations. If the
+// enum is a number, its value will be used as the numeric representation.
+// Otherwise, the library automatically assigns the smallest available number
+// to the enum.
 //
-// This function is used to map an enum value to its corresponding string,
-// allowing easier handling of enums in contexts like serialization, logging,
-// or user-facing output.
-//
-// Note that this method is not thread-safe. Ensure mappings are set up during
+// Note that this function is not thread-safe. Ensure mappings are set up during
 // initialization or other safe execution points to avoid race conditions.
-func Map[T any](value T, s string) T {
-	return core.MapAny(core.GetAvailableEnumValue[T](), value, s)
+func Map[T any](enum T, s string) T {
+	var num int64
+
+	var anyt any = enum
+	switch v := anyt.(type) {
+	case int:
+		num = int64(v)
+	case int8:
+		num = int64(v)
+	case int16:
+		num = int64(v)
+	case int32:
+		num = int64(v)
+	case int64:
+		num = int64(v)
+	case uint:
+		num = int64(v)
+	case uint8:
+		num = int64(v)
+	case uint16:
+		num = int64(v)
+	case uint32:
+		num = int64(v)
+	case uint64:
+		num = int64(v)
+	default:
+		num = core.GetAvailableEnumValue[T]()
+	}
+
+	return core.MapAny(num, enum, s)
 }
 
 // Finalize prevents any further creation of new enum values.
@@ -92,25 +120,23 @@ func MustFromString[T any](s string) T {
 	return enum
 }
 
-// ToString returns the string representation of the given enum value.
-//
-// It panics if the enum value is invalid.
+// ToString returns the string representation of the given enum value. It
+// returns <nil> for invalid enums.
 func ToString[T any](value T) string {
 	str, ok := mtmap.Get(mtkey.Enum2String(value))
 	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid", common.NameOf[T]()))
+		return "<nil>"
 	}
 
 	return str
 }
 
-// ToInt returns the int representation for the given enum value.
-//
-// It panics if the enum value is invalid.
+// ToInt returns the int representation for the given enum value. It returns the
+// smallest value of int (math.MinInt32) for invalid enums.
 func ToInt[T any](enum T) int {
 	value, ok := mtmap.Get(mtkey.Enum2Int(enum))
 	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid", common.NameOf[T]()))
+		return math.MinInt32
 	}
 
 	return int(value)

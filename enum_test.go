@@ -3,6 +3,8 @@ package enum_test
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,7 +85,8 @@ func TestEnumMapDuplicated(t *testing.T) {
 func TestEnumMustToString(t *testing.T) {
 	type Role int
 
-	assert.Panics(t, func() { enum.ToString(Role(0)) })
+	assert.Equal(t, enum.ToString(Role(42)), "<nil>")
+
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
@@ -91,7 +94,7 @@ func TestEnumMustToString(t *testing.T) {
 
 	assert.Equal(t, enum.ToString(RoleUser), "user")
 	assert.Equal(t, enum.ToString(RoleAdmin), "admin")
-	assert.Panics(t, func() { enum.ToString(Role(2)) })
+	assert.Equal(t, enum.ToString(Role(42)), "<nil>")
 }
 
 func TestEnumFromString(t *testing.T) {
@@ -163,7 +166,8 @@ func TestEnumMustFromInt(t *testing.T) {
 func TestEnumMustToInt(t *testing.T) {
 	type Role int
 
-	assert.Panics(t, func() { enum.ToInt(Role(0)) })
+	assert.Equal(t, enum.ToInt(Role(42)), math.MinInt32)
+
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
@@ -171,7 +175,7 @@ func TestEnumMustToInt(t *testing.T) {
 
 	assert.Equal(t, enum.ToInt(RoleUser), 0)
 	assert.Equal(t, enum.ToInt(RoleAdmin), 1)
-	assert.Panics(t, func() { enum.ToInt(Role(2)) })
+	assert.Equal(t, enum.ToInt(Role(42)), math.MinInt32)
 }
 
 func TestEnumUndefined(t *testing.T) {
@@ -305,7 +309,7 @@ func TestEnumScanSQL(t *testing.T) {
 
 func TestEnumSQL(t *testing.T) {
 	type role any
-	type Role = enum.IntEnum[role]
+	type Role = enum.WrapEnum[role]
 
 	var (
 		RoleUser = enum.New[Role]("user")
@@ -337,7 +341,7 @@ func TestEnumSQL(t *testing.T) {
 
 func TestEnumJSON(t *testing.T) {
 	type role any
-	type Role = enum.IntEnum[role]
+	type Role = enum.WrapEnum[role]
 
 	var (
 		RoleUser = enum.New[Role]("user")
@@ -362,4 +366,48 @@ func TestEnumJSON(t *testing.T) {
 	err = json.Unmarshal([]byte("{\"id\":1,\"name\":\"tester\",\"role\":\"user\"}"), &s)
 	assert.NoError(t, err)
 	assert.Equal(t, RoleUser, s.Role)
+}
+
+func TestBasicEnumPrintZeroStruct(t *testing.T) {
+	type Role int
+
+	var (
+		_ = enum.New[Role]("user")
+	)
+
+	type User struct {
+		Role Role
+	}
+
+	assert.Equal(t, "{0}", fmt.Sprint(User{}))
+}
+
+func TestWrapEnumPrintZeroStruct(t *testing.T) {
+	type underlyingRole any
+	type Role = enum.WrapEnum[underlyingRole]
+
+	var (
+		_ = enum.New[Role]("user")
+	)
+
+	type User struct {
+		Role Role
+	}
+
+	assert.Equal(t, "{user}", fmt.Sprint(User{}))
+}
+
+func TestStructEnumPrintZeroStruct(t *testing.T) {
+	type underlyingRole any
+	type Role = enum.SafeEnum[underlyingRole]
+
+	var (
+		_ = enum.NewSafe[underlyingRole]("user")
+	)
+
+	type User struct {
+		Role Role
+	}
+
+	assert.Equal(t, "{<nil>}", fmt.Sprint(User{}))
 }
