@@ -11,7 +11,7 @@
 
 **Elegant and powerful enums for Go with zero code generation!**
 
-[1]: #-iota-enum
+[1]: #-basic-enum
 [2]: #-wrapenum
 [3]: #-safeenum
 [4]: #-utility-functions
@@ -27,43 +27,34 @@ go get -u github.com/xybor-x/enum
 
 ## 📋 Features
 
-All enum types behave nearly consistently, so you can choose the style that best fits your use case without worrying about differences in functionality. You can refer to the [recommendations](#-recommendations).
+All of the following enum types are compatible with the APIs provided by `xybor-x/enum`.
+
+***Recommnedation**: Focus on [WrapEnum][2] and [SafeEnum][3].*
 
 |                            | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
 | -------------------------- | ------------------- | ------------------ | ------------------ |
-| **Built-in methods**       | No                  | Yes                | Yes                |
-| **Constant enum** ([#][5]) | Yes                 | Yes                | No                 |
-| **Enum type**              | Any integer types   | `int`              | `struct`           |
-| **Enum value type**        | Any integer types   | `int`              | `struct`           |
-| **Serde** ([#][6])         | No                  | Yes                | Yes                |
-| **Type safety** ([#][7])   | No                  | Basic              | Strong             |
+| **Built-in methods**       | No                  | **Yes**            | **Yes**            |
+| **Constant enum** ([#][5]) | **Yes**             | **Yes**            | No                 |
+| **Serde** ([#][6])         | No                  | **Yes**            | **Yes**            |
+| **Type safety** ([#][7])   | No                  | Basic              | **Strong**         |
 
 ❗ **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
 
 
-## 🔍 Recommendations
-
-|                               | Basic enum | Wrap enum | Safe enum |
-| ----------------------------- | ---------- | --------- | --------- |
-| **Simplified use**            | Yes        | Yes       | Yes       |
-| **Exhaustive check required** | Yes        | Yes       | No        |
-| **Type safety required**      | No         | Maybe     | Yes       |
-
-
 ## ⭐ Basic enum
 
-The basic enum (`iota` approach) is the most commonly used enum implementation in Go.
+The basic enum (a.k.a `iota` enum) is the most commonly used enum implementation in Go.
 
 It is essentially a primitive type, which does not include any built-in methods. For handling this type of enum, please refer to the [utility functions][4].
 
 **Pros 💪**
 - Simple.
-- Supports constant values.
+- Supports constant values ([#][5]).
 
 **Cons 👎**
 - No built-in methods.
-- Lacks serialization and deserialization support.
 - No type safety.
+- Lacks serialization and deserialization support.
 
 ``` go
 type Role int
@@ -81,15 +72,16 @@ func init() {
 ```
 
 ## ⭐ WrapEnum
+
 `WrapEnum` offers a set of built-in methods to simplify working with enums.
 
 **Pros 💪**
-- Supports constant values.
+- Supports constant values ([#][5]).
 - Provides many useful built-in methods.
 - Full serialization and deserialization support out of the box.
 
 **Cons 👎**
-- Provides only **basic type safety**.
+- Provides only **basic type safety** ([#][7]).
 
 ```go
 // Define enum's underlying type.
@@ -128,12 +120,12 @@ func main() {
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
 **Pros 💪**
-- Provides **strong type safety**.
+- Provides **strong type safety** ([#][7]).
 - Provides many useful built-in methods.
 - Full serialization and deserialization support out of the box.
 
 **Cons 👎**
-- Does not support constant values.
+- Does not support constant values ([#][5]).
 
 ```go
 // Define enum's underlying type.

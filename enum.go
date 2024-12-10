@@ -33,7 +33,7 @@ import (
 //     need a constant enum, declare it explicitly and use enum.Map() instead.
 //   - This function is not thread-safe and should only be called during
 //     initialization or other safe execution points to avoid race conditions.
-func New[T common.Integral](s string) T {
+func New[T common.Integer](s string) T {
 	id := core.GetAvailableEnumValue[T]()
 	return core.MapAny(id, T(id), s)
 }
