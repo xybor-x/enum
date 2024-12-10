@@ -52,7 +52,7 @@ All enum types behave nearly consistently, so you can choose the style that best
 
 ## ⭐ Basic enum
 
-The basic enum is the most commonly used enum implementation in Go.
+The basic enum (`iota` approach) is the most commonly used enum implementation in Go.
 
 It is essentially a primitive type, which does not include any built-in methods. For handling this type of enum, please refer to the [utility functions][4].
 
