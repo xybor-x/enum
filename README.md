@@ -46,7 +46,7 @@ All enum types behave nearly consistently, so you can choose the style that best
 |                               | Basic enum | Wrap enum | Safe enum |
 | ----------------------------- | ---------- | --------- | --------- |
 | **Simplified use**            | Yes        | Yes       | Yes       |
-| **Exhaustive check required** | Maybe      | Yes       | No        |
+| **Exhaustive check required** | Yes        | Yes       | No        |
 | **Type safety required**      | No         | Maybe     | Yes       |
 
 
