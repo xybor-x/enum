@@ -53,7 +53,7 @@ It is essentially a primitive type, which does not include any built-in methods.
 
 **Cons 👎**
 - No built-in methods.
-- No type safety.
+- No type safety ([#][7]).
 - Lacks serialization and deserialization support.
 
 ``` go
