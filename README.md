@@ -230,7 +230,7 @@ Some static analysis tools support checking for exhaustive `switch` statements i
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
-> [!IMPORTANT] 
+> [!WARNING] 
 > Not all enum types support serde operations, please refer to the [features](#-features).
 
 Currently supported:
