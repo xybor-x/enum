@@ -31,12 +31,12 @@ All of the following enum types are compatible with the APIs provided by `xybor-
 
 ***Recommnedation**: Focus on [WrapEnum][2] and [SafeEnum][3].*
 
-|                            | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
-| -------------------------- | ------------------- | ------------------ | ------------------ |
-| **Built-in methods**       | No                  | **Yes**            | **Yes**            |
-| **Constant enum** ([#][5]) | **Yes**             | **Yes**            | No                 |
-| **Serde** ([#][6])         | No                  | **Yes**            | **Yes**            |
-| **Type safety** ([#][7])   | No                  | Basic              | **Strong**         |
+|                                                | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
+| ---------------------------------------------- | ------------------- | ------------------ | ------------------ |
+| **Built-in methods**                           | No                  | **Yes**            | **Yes**            |
+| **Constant enum** ([#][5])                     | **Yes**             | **Yes**            | No                 |
+| **Serialization and deserialization** ([#][6]) | No                  | **Yes**            | **Yes**            |
+| **Type safety** ([#][7])                       | No                  | Basic              | **Strong**         |
 
 ❗ **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
 
