@@ -12,8 +12,8 @@
 **Elegant and powerful enums for Go with zero code generation!**
 
 [1]: #-iota-enum
-[2]: #-wrap-enum
-[3]: #-safe-enum
+[2]: #-wrapenum
+[3]: #-safeenum
 [4]: #-utility-functions
 [5]: #-constant-support
 [6]: #-serialization-and-deserialization
@@ -80,7 +80,7 @@ func init() {
 }
 ```
 
-## ⭐ Wrap Enum
+## ⭐ WrapEnum
 `WrapEnum` offers a set of built-in methods to simplify working with enums.
 
 **Pros 💪**
@@ -121,7 +121,7 @@ func main() {
 }
 ```
 
-## ⭐ Safe enum
+## ⭐ SafeEnum
 
 `SafeEnum` defines a strong type-safe enum. Like `WrapEnum`, it provides a set of built-in methods to simplify working with enums.
 
