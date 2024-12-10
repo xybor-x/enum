@@ -18,6 +18,10 @@ func GetAvailableEnumValue[T any]() int64 {
 }
 
 func MapAny[T any](num int64, value T, s string) T {
+	if num < 0 {
+		panic("not support negative enum value")
+	}
+
 	if s == "" {
 		panic("not allow empty string representation in enum definition")
 	}
