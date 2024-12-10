@@ -11,13 +11,17 @@
 
 **Elegant and powerful enums for Go with zero code generation!**
 
-[1]: #-iota-enum
+[1]: #-basic-enum
 [2]: #-wrapenum
 [3]: #-safeenum
 [4]: #-utility-functions
 [5]: #-constant-support
 [6]: #-serialization-and-deserialization
 [7]: #-type-safety
+
+> [!WARNING]
+> Please keep in mind that `xybor-x/enum` is still under active development
+> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
 
 ## 🔧 Installation
 
@@ -27,43 +31,34 @@ go get -u github.com/xybor-x/enum
 
 ## 📋 Features
 
-All enum types behave nearly consistently, so you can choose the style that best fits your use case without worrying about differences in functionality. You can refer to the [recommendations](#-recommendations).
+All of the following enum types are compatible with the APIs provided by `xybor-x/enum`.
 
-|                            | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
-| -------------------------- | ------------------- | ------------------ | ------------------ |
-| **Built-in methods**       | No                  | Yes                | Yes                |
-| **Constant enum** ([#][5]) | Yes                 | Yes                | No                 |
-| **Enum type**              | Any integer types   | `int`              | `struct`           |
-| **Enum value type**        | Any integer types   | `int`              | `struct`           |
-| **Serde** ([#][6])         | No                  | Yes                | Yes                |
-| **Type safety** ([#][7])   | No                  | Basic              | Strong             |
+|                                                | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
+| ---------------------------------------------- | ------------------- | ------------------ | ------------------ |
+| **Built-in methods**                           | No                  | **Yes**            | **Yes**            |
+| **Constant enum** ([#][5])                     | **Yes**             | **Yes**            | No                 |
+| **Serialization and deserialization** ([#][6]) | No                  | **Yes**            | **Yes**            |
+| **Type safety** ([#][7])                       | No                  | Basic              | **Strong**         |
 
-❗ **Note**: Enum definitions are ***NOT thread-safe***. Therefore, they should be finalized during initialization (at the global scope).
-
-
-## 🔍 Recommendations
-
-|                               | Basic enum | Wrap enum | Safe enum |
-| ----------------------------- | ---------- | --------- | --------- |
-| **Simplified use**            | Yes        | Yes       | Yes       |
-| **Exhaustive check required** | Yes        | Yes       | No        |
-| **Type safety required**      | No         | Maybe     | Yes       |
+> [!CAUTION]
+> Enum definitions are not thread-safe.
+> Therefore, they should be finalized during initialization (at the global scope).
 
 
 ## ⭐ Basic enum
 
-The basic enum (`iota` approach) is the most commonly used enum implementation in Go.
+The basic enum (a.k.a `iota` enum) is the most commonly used enum implementation in Go.
 
 It is essentially a primitive type, which does not include any built-in methods. For handling this type of enum, please refer to the [utility functions][4].
 
 **Pros 💪**
 - Simple.
-- Supports constant values.
+- Supports constant values ([#][5]).
 
 **Cons 👎**
 - No built-in methods.
+- No type safety ([#][7]).
 - Lacks serialization and deserialization support.
-- No type safety.
 
 ``` go
 type Role int
@@ -81,22 +76,23 @@ func init() {
 ```
 
 ## ⭐ WrapEnum
+
 `WrapEnum` offers a set of built-in methods to simplify working with enums.
 
 **Pros 💪**
-- Supports constant values.
+- Supports constant values ([#][5]).
 - Provides many useful built-in methods.
 - Full serialization and deserialization support out of the box.
 
 **Cons 👎**
-- Provides only **basic type safety**.
+- Provides only **basic type safety** ([#][7]).
 
 ```go
 // Define enum's underlying type.
-type underlyingRole any
+type role any
 
 // Create a WrapEnum type for roles.
-type Role = enum.WrapEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.
+type Role = enum.WrapEnum[role] // NOTE: It must use type alias instead of type definition.
 
 const (
     RoleUser Role = iota
@@ -128,23 +124,23 @@ func main() {
 The `SafeEnum` enforces strict type safety, ensuring that only predefined enum values are allowed. It prevents the accidental creation of new enum types, providing a guaranteed set of valid values.
 
 **Pros 💪**
-- Provides **strong type safety**.
+- Provides **strong type safety** ([#][7]).
 - Provides many useful built-in methods.
 - Full serialization and deserialization support out of the box.
 
 **Cons 👎**
-- Does not support constant values.
+- Does not support constant values ([#][5]).
 
 ```go
 // Define enum's underlying type.
-type underlyingRole string
+type role any
 
-// Create a StructEnum type for roles.
-type Role = enum.SafeEnum[underlyingRole] // NOTE: It must use type alias instead of type definition.
+// Create a SafeEnum type for roles.
+type Role = enum.SafeEnum[role] // NOTE: It must use type alias instead of type definition.
 
 var (
-    RoleUser  = enum.NewSafe[underlyingRole]("user")
-    RoleAdmin = enum.NewSafe[underlyingRole]("admin")
+    RoleUser  = enum.NewSafe[Role]("user")
+    RoleAdmin = enum.NewSafe[Role]("admin")
 )
 
 func main() {
@@ -156,7 +152,8 @@ func main() {
 
 ## 💡 Utility functions
 
-*All of the following functions can be used with any style of enum. Note that this differs from the built-in methods, which are tied to the enum object rather than being standalone functions.*
+> [!NOTE]
+> All of the following functions can be used with any type of enum.
 
 ### FromString
 
@@ -233,15 +230,16 @@ Some static analysis tools support checking for exhaustive `switch` statements i
 
 Serialization and deserialization are essential when working with enums, and our library provides seamless support for handling them out of the box.
 
+> [!WARNING] 
+> Not all enum types support serde operations, please refer to the [features](#-features).
+
 Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
 - `SQL`: Implements `driver.Valuer` and `sql.Scanner`.
 
-❗ *Note that NOT ALL enum styles support serde operations, please refer to the [features/serde](#-features).*
-
 ## 🔅 Type safety
 
-`WrapEnum` includes built-in methods for serialization and deserialization, offering **basic type safety** and preventing most invalid enum cases.
+The [WrapEnum][2] prevents most invalid enum cases due to built-in methods for serialization and deserialization, offering **basic type safety**.
 
 However, it is still possible to accidentally create an invalid enum value, like this:
 
@@ -249,9 +247,66 @@ However, it is still possible to accidentally create an invalid enum value, like
 moderator := Role(42) // Invalid enum value
 ```
 
-The [`SafeEnum`][4] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` object without explicitly using the `NewSafe` function or zero initialization.
+The [SafeEnum][3] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` object without explicitly using the `NewSafe` function or zero initialization.
 
 ```go
 moderator := Role(42)          // Compile-time error
 moderator := Role("moderator") // Compile-time error
+```
+
+## 🔅 Extensible
+
+### Extend basic enum
+
+Since this enum is just a primitive type and does not have built-in methods, you can easily extend it by directly adding additional methods.
+
+```go
+type Role int
+
+const (
+    RoleUser Role = iota
+    RoleMod
+    RoleAdmin
+)
+
+func init() {
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleMod, "mod")
+    enum.Map(RoleAdmin, "admin")
+    enum.Finalize[Role]()
+}
+
+func (r Role) HasPermission() bool {
+    return r == RoleMod || r == RoleAdmin
+}
+```
+
+### Extend WrapEnum
+
+`WrapEnum` has many predefined methods. The only way to retain these methods while extending it is to wrap it as an embedded field in another struct.
+
+However, this approach will break the constant-support property of the `WrapEnum` because Go does not support constants for structs.
+
+You should consider extending [Basic enum](#extend-basic-enum) or [Safe enum](#extend-safeenum) instead.
+
+### Extend SafeEnum
+
+`SafeEnum` has many predefined methods. The only way to retain these methods while extending it is to wrap it as an embedded field in another struct.
+
+`xybor-x/enum` provides the `NewExtendedSafe` function to help create a wrapper of SafeEnum.
+
+```go
+type role any
+type Role struct { enum.SafeEnum[role] }
+
+var (
+    RoleUser  = enum.NewExtendedSafe[Role]("user")
+    RoleMod   = enum.NewExtendedSafe[Role]("mod")
+    RoleAdmin = enum.NewExtendedSafe[Role]("admin")
+    _         = enum.Finalize[Role]()
+)
+
+func (r Role) HasPermission() bool {
+    return r == RoleMod || r == RoleAdmin
+}
 ```
