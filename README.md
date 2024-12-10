@@ -229,7 +229,7 @@ Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
 - `SQL`: Implements `driver.Valuer` and `sql.Scanner`.
 
-❗ *Note that NOT ALL enum styles support serde operations, please refer to the [features/serde](#-features).*
+❗ *Note that NOT ALL enum types support serde operations, please refer to the [features](#-features).*
 
 ## 🔅 Type safety
 
