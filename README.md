@@ -118,9 +118,6 @@ func main() {
     // WrapEnum has many built-in methods for handling enum easier.
     data, _ := json.Marshal(RoleUser) // Output: "user"
     fmt.Println(RoleAdmin.IsValid())  // Output: true
-
-    data, _ := json.Marshal(User{})
-    fmt.Println(data)                 // Output: 
 }
 ```
 
@@ -154,10 +151,6 @@ func main() {
     // SafeEnum has many built-in methods for handling enum easier.
     data, _ := json.Marshal(RoleUser) // Output: "user"
     fmt.Println(RoleAdmin.IsValid())  // Output: true
-
-    // There is no way to create an invalid enum, except for the zero initialization.
-    var r Role
-    fmt.Println(r) // <nil>
 }
 ```
 
