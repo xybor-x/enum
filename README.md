@@ -19,6 +19,10 @@
 [6]: #-serialization-and-deserialization
 [7]: #-type-safety
 
+> [!WARNING]
+> Please keep in mind that `xybor-x/enum` is still under active development
+> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
+
 ## 🔧 Installation
 
 ```sh
@@ -233,7 +237,7 @@ Currently supported:
 
 ## 🔅 Type safety
 
-`WrapEnum` includes built-in methods for serialization and deserialization, offering **basic type safety** and preventing most invalid enum cases.
+The [WrapEnum][2] prevents most invalid enum cases due to built-in methods for serialization and deserialization, offering **basic type safety**.
 
 However, it is still possible to accidentally create an invalid enum value, like this:
 
@@ -241,7 +245,7 @@ However, it is still possible to accidentally create an invalid enum value, like
 moderator := Role(42) // Invalid enum value
 ```
 
-The [`SafeEnum`][4] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` object without explicitly using the `NewSafe` function or zero initialization.
+The [SafeEnum][3] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` object without explicitly using the `NewSafe` function or zero initialization.
 
 ```go
 moderator := Role(42)          // Compile-time error
