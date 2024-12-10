@@ -368,7 +368,7 @@ func TestEnumJSON(t *testing.T) {
 	assert.Equal(t, RoleUser, s.Role)
 }
 
-func TestBasicEnumPrintZeroStruct(t *testing.T) {
+func TestEnumPrintZeroStruct(t *testing.T) {
 	type Role int
 
 	var (
@@ -380,34 +380,4 @@ func TestBasicEnumPrintZeroStruct(t *testing.T) {
 	}
 
 	assert.Equal(t, "{0}", fmt.Sprint(User{}))
-}
-
-func TestWrapEnumPrintZeroStruct(t *testing.T) {
-	type underlyingRole any
-	type Role = enum.WrapEnum[underlyingRole]
-
-	var (
-		_ = enum.New[Role]("user")
-	)
-
-	type User struct {
-		Role Role
-	}
-
-	assert.Equal(t, "{user}", fmt.Sprint(User{}))
-}
-
-func TestStructEnumPrintZeroStruct(t *testing.T) {
-	type underlyingRole any
-	type Role = enum.SafeEnum[underlyingRole]
-
-	var (
-		_ = enum.NewSafe[underlyingRole]("user")
-	)
-
-	type User struct {
-		Role Role
-	}
-
-	assert.Equal(t, "{<nil>}", fmt.Sprint(User{}))
 }

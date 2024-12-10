@@ -105,13 +105,13 @@ func ExampleWrapEnum() {
 
 func ExampleSafeEnum() {
 	// Define a generic enum type
-	type underlyingRole string
-	type Role = enum.SafeEnum[underlyingRole]
+	type role string
+	type Role = enum.SafeEnum[role]
 
 	// Define enum values for Role using iota
 	var (
-		RoleUser  = enum.NewSafe[underlyingRole]("user")
-		RoleAdmin = enum.NewSafe[underlyingRole]("admin")
+		RoleUser  = enum.NewSafe[Role]("user")
+		RoleAdmin = enum.NewSafe[Role]("admin")
 		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
