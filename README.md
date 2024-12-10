@@ -43,11 +43,11 @@ All enum types behave nearly consistently, so you can choose the style that best
 
 ## 🔍 Recommendations
 
-|                                 | Basic enum | Wrap enum | Safe enum |
-| ------------------------------- | ---------- | --------- | --------- |
-| **Simplified use**              | Yes        | Yes       | Yes       |
-| **Exhaustive check required**   | Maybe      | Yes       | No        |
-| **Strict type safety required** | No         | No        | Yes       |
+|                               | Basic enum | Wrap enum | Safe enum |
+| ----------------------------- | ---------- | --------- | --------- |
+| **Simplified use**            | Yes        | Yes       | Yes       |
+| **Exhaustive check required** | Maybe      | Yes       | No        |
+| **Type safety required**      | No         | Maybe     | Yes       |
 
 
 ## ⭐ Basic enum
