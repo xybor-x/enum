@@ -18,6 +18,8 @@ jobs:
           go-version: 1.21.0
 
       - run: go mod tidy
+      - run: go work init .
+      - run: go work use ./testing/
 
       - name: Test
-        run: go test -timeout 30s -v -race ./... -coverprofile=cover.out
+        run: go test -timeout 30s -v -race ./testing/... -coverprofile=cover.out

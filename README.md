@@ -9,7 +9,7 @@
 
 # ⚙️ Go Enum
 
-**Elegant and powerful enums for Go with zero code generation!**
+**Elegant, powerful, and dependency-free enums for Go with zero code generation!**
 
 [1]: #-basic-enum
 [2]: #-wrapenum
@@ -31,7 +31,8 @@ go get -u github.com/xybor-x/enum
 
 ## 📋 Features
 
-All of the following enum types are compatible with the APIs provided by `xybor-x/enum`.
+> [!TIP]
+> `xybor-x/enum` supports three enum types: **Basic enum** for simplicity, **Wrap enum** for enhanced functionality, and **Safe enum** for strict type safety.
 
 |                                                | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
 | ---------------------------------------------- | ------------------- | ------------------ | ------------------ |
