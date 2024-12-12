@@ -2,9 +2,9 @@ name: Test
 
 on:
   push:
-    branches: ["dev"]
+    branches: ["dev", "main"]
   pull_request:
-    branches: ["dev"]
+    branches: ["dev", "main"]
 
 jobs:
   build:
@@ -17,7 +17,10 @@ jobs:
         with:
           go-version: 1.21.0
 
-      - run: go mod tidy
+      - run: |
+          go work init .
+          go work use ./testing/
+          go work sync
 
       - name: Test
-        run: go test -timeout 30s -v -race ./... -coverprofile=cover.out
+        run: go test -timeout 30s -v -race ./testing/... -coverprofile=cover.out
