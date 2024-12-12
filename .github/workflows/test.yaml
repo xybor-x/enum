@@ -20,7 +20,7 @@ jobs:
       - run: go work init .
       - run: go work use ./testing/
 
-      - run: go mod tidy
+      - run: go work sync
 
       - name: Test
         run: go test -timeout 30s -v -race ./testing/... -coverprofile=cover.out
