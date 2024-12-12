@@ -29,7 +29,6 @@ type safeEnumer interface {
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
 func NewSafe[T safeEnumer](inner string) T {
-	panic("")
 	var defaultT T
 	return defaultT.newsafeenum(inner).(T)
 }
