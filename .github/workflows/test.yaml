@@ -17,10 +17,10 @@ jobs:
         with:
           go-version: 1.21.0
 
-      - run: go work init .
-      - run: go work use ./testing/
-
-      - run: go work sync
+      - run: |
+          go work init .
+          go work use ./testing/
+          go work sync
 
       - name: Test
         run: go test -timeout 30s -v -race ./testing/... -coverprofile=cover.out
