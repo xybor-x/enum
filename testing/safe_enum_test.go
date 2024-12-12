@@ -1,4 +1,4 @@
-package enum_test
+package testing
 
 import (
 	"fmt"
