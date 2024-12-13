@@ -3,6 +3,7 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
+	"strconv"
 )
 
 // WrapEnum provides a set of built-in methods to simplify working with enums.
@@ -38,7 +39,7 @@ func (e WrapEnum[underlyingEnum]) String() string {
 
 func (e WrapEnum[underlyingEnum]) GoString() string {
 	if !e.IsValid() {
-		return "<nil>"
+		return strconv.Itoa(int(e))
 	}
 
 	return fmt.Sprintf("%d (%s)", e, e)

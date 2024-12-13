@@ -93,7 +93,7 @@ func (e SafeEnum[underlyingEnum]) String() string {
 
 func (e SafeEnum[underlyingEnum]) GoString() string {
 	if !IsValid(e) {
-		return "<nil>"
+		return e.inner
 	}
 
 	return fmt.Sprintf("%d (%s)", ToInt(e), e.inner)

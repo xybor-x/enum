@@ -152,7 +152,7 @@ func IsValid[T any](value T) bool {
 // MarshalJSON serializes an enum value into its string representation.
 func MarshalJSON[T any](value T) ([]byte, error) {
 	if !IsValid(value) {
-		return nil, fmt.Errorf("enum %s: invalid", common.NameOf[T]())
+		return nil, fmt.Errorf("enum %s: invalid %#v", common.NameOf[T](), value)
 	}
 
 	return json.Marshal(ToString(value))

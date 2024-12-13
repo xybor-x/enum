@@ -4,7 +4,6 @@
 [![GitHub release (release name instead of tag name)](https://img.shields.io/github/v/release/xybor-x/enum?include_prereleases)](https://github.com/xybor-x/enum/releases/latest)
 [![GitHub Repo stars](https://img.shields.io/github/stars/xybor-x/enum?color=blue)](https://github.com/xybor-x/enum)
 
-
 ![Golang](./.github/go-enum.png)
 
 # ⚙️ Go Enum
@@ -18,10 +17,6 @@
 [5]: #-constant-support
 [6]: #-serialization-and-deserialization
 [7]: #-type-safety
-
-> [!WARNING]
-> Please keep in mind that `xybor-x/enum` is still under active development
-> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
 
 ## 🔧 Installation
 
@@ -104,11 +99,6 @@ func init() {
     enum.Map(RoleUser, "user")
     enum.Map(RoleAdmin, "admin")
     enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
-}
-
-type User struct {
-    ID   int  `json:"id"`
-    Role Role `json:"role"`
 }
 
 func main() {
