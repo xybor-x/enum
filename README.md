@@ -312,7 +312,7 @@ You should consider extending [Basic enum](#extend-basic-enum) or [Safe enum](#e
 
 `SafeEnum` has many predefined methods. The only way to retain these methods while extending it is to wrap it as an embedded field in another struct.
 
-`xybor-x/enum` provides the `NewExtendedSafe` function to help create a wrapper of SafeEnum.
+`xybor-x/enum` provides the `NewExtended` function to help create a wrapper of advanced enums.
 
 ```go
 type role any
