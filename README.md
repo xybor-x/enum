@@ -24,11 +24,11 @@
 go get -u github.com/xybor-x/enum
 ```
 
-## Quick start
+## ⚡ Quick start
 
 > [!TIP]
-> Refer to the [features](#-features) for more useful enum types.
-
+> This is just a ⚡ quick definition for general use cases.
+> See more advanced [Features](#-features).
 
 > [!CAUTION]
 > Enum definitions are not thread-safe.
@@ -36,19 +36,16 @@ go get -u github.com/xybor-x/enum
 
 
 ```go
+package main
+
 type role any
-type Role = enum.WrapEnum[role]
+type Role = enum.SafeEnum[role]
 
-const (
-    RoleUser Role = iota
-    RoleAdmin
+var (
+    RoleUser  = enum.New[Role]("user")
+    RoleAdmin = enum.New[Role]("admin")
+    _         = enum.Finalize[Role]()
 )
-
-func init() {
-    enum.Map(RoleUser, "user")
-    enum.Map(RoleAdmin, "admin")
-    enum.Finalize[Role]()
-}
 
 func main() {
     // Print out the string representation of enum.
