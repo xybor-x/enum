@@ -24,6 +24,42 @@
 go get -u github.com/xybor-x/enum
 ```
 
+## Quick start
+
+> [!TIP]
+> Refer to the [features](#-features) for more useful enum types.
+
+
+> [!CAUTION]
+> Enum definitions are not thread-safe.
+> Therefore, they should be finalized during initialization (at the global scope).
+
+
+```go
+type role any
+type Role = enum.WrapEnum[role]
+
+const (
+    RoleUser Role = iota
+    RoleAdmin
+)
+
+func init() {
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleAdmin, "admin")
+    enum.Finalize[Role]()
+}
+
+func main() {
+    // Print out the string representation of enum.
+    fmt.Println(RoleAdmin) // Output: admin
+
+    // Serialize a user to json format.
+    data, _ := json.Marshal(RoleUser) 
+    fmt.Println(string(data)) // Output: "user"
+}
+```
+
 ## 📋 Features
 
 > [!TIP]
@@ -35,11 +71,6 @@ go get -u github.com/xybor-x/enum
 | **Constant enum** ([#][5])                     | **Yes**             | **Yes**            | No                 |
 | **Serialization and deserialization** ([#][6]) | No                  | **Yes**            | **Yes**            |
 | **Type safety** ([#][7])                       | No                  | Basic              | **Strong**         |
-
-> [!CAUTION]
-> Enum definitions are not thread-safe.
-> Therefore, they should be finalized during initialization (at the global scope).
-
 
 ## ⭐ Basic enum
 
@@ -130,8 +161,8 @@ type role any
 type Role = enum.SafeEnum[role] // NOTE: It must use type alias instead of type definition.
 
 var (
-    RoleUser  = enum.NewSafe[Role]("user")
-    RoleAdmin = enum.NewSafe[Role]("admin")
+    RoleUser  = enum.New[Role]("user")
+    RoleAdmin = enum.New[Role]("admin")
 )
 
 func main() {
@@ -291,9 +322,9 @@ type role any
 type Role struct { enum.SafeEnum[role] }
 
 var (
-    RoleUser  = enum.NewExtendedSafe[Role]("user")
-    RoleMod   = enum.NewExtendedSafe[Role]("mod")
-    RoleAdmin = enum.NewExtendedSafe[Role]("admin")
+    RoleUser  = enum.NewExtended[Role]("user")
+    RoleMod   = enum.NewExtended[Role]("mod")
+    RoleAdmin = enum.NewExtended[Role]("admin")
     _         = enum.Finalize[Role]()
 )
 

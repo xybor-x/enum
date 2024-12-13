@@ -23,4 +23,6 @@ jobs:
           go work sync
 
       - name: Test
-        run: go test -timeout 30s -v -race ./testing/... -coverprofile=cover.out
+        run: |
+          go test -timeout 30s -v -race ./...
+          go test -timeout 30s -v -race ./testing/...

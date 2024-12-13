@@ -26,6 +26,10 @@ func MapAny[T any](num int64, value T, s string) T {
 		panic("not allow empty string representation in enum definition")
 	}
 
+	if s == "<nil>" {
+		panic("not allow \"<nil>\" string representation in enum definition")
+	}
+
 	if ok := mtmap.MustGet(mtkey.IsFinalized[T]()); ok {
 		panic("enum is finalized")
 	}

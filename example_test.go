@@ -110,8 +110,8 @@ func ExampleSafeEnum() {
 
 	// Define enum values for Role using iota
 	var (
-		RoleUser  = enum.NewSafe[Role]("user")
-		RoleAdmin = enum.NewSafe[Role]("admin")
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
 		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
