@@ -4,7 +4,6 @@
 [![GitHub release (release name instead of tag name)](https://img.shields.io/github/v/release/xybor-x/enum?include_prereleases)](https://github.com/xybor-x/enum/releases/latest)
 [![GitHub Repo stars](https://img.shields.io/github/stars/xybor-x/enum?color=blue)](https://github.com/xybor-x/enum)
 
-
 ![Golang](./.github/go-enum.png)
 
 # ⚙️ Go Enum
@@ -19,14 +18,43 @@
 [6]: #-serialization-and-deserialization
 [7]: #-type-safety
 
-> [!WARNING]
-> Please keep in mind that `xybor-x/enum` is still under active development
-> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
-
 ## 🔧 Installation
 
 ```sh
 go get -u github.com/xybor-x/enum
+```
+
+## ⚡ Quick start
+
+> [!TIP]
+> This is just a ⚡ quick definition for general use cases.
+> See more advanced [Features](#-features).
+
+> [!CAUTION]
+> Enum definitions are not thread-safe.
+> Therefore, they should be finalized during initialization (at the global scope).
+
+
+```go
+package main
+
+type role any
+type Role = enum.SafeEnum[role]
+
+var (
+    RoleUser  = enum.New[Role]("user")
+    RoleAdmin = enum.New[Role]("admin")
+    _         = enum.Finalize[Role]()
+)
+
+func main() {
+    // Print out the string representation of enum.
+    fmt.Println(RoleAdmin) // Output: admin
+
+    // Serialize a user to json format.
+    data, _ := json.Marshal(RoleUser) 
+    fmt.Println(string(data)) // Output: "user"
+}
 ```
 
 ## 📋 Features
@@ -40,11 +68,6 @@ go get -u github.com/xybor-x/enum
 | **Constant enum** ([#][5])                     | **Yes**             | **Yes**            | No                 |
 | **Serialization and deserialization** ([#][6]) | No                  | **Yes**            | **Yes**            |
 | **Type safety** ([#][7])                       | No                  | Basic              | **Strong**         |
-
-> [!CAUTION]
-> Enum definitions are not thread-safe.
-> Therefore, they should be finalized during initialization (at the global scope).
-
 
 ## ⭐ Basic enum
 
@@ -106,11 +129,6 @@ func init() {
     enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 }
 
-type User struct {
-    ID   int  `json:"id"`
-    Role Role `json:"role"`
-}
-
 func main() {
     // WrapEnum has many built-in methods for handling enum easier.
     data, _ := json.Marshal(RoleUser) // Output: "user"
@@ -140,8 +158,8 @@ type role any
 type Role = enum.SafeEnum[role] // NOTE: It must use type alias instead of type definition.
 
 var (
-    RoleUser  = enum.NewSafe[Role]("user")
-    RoleAdmin = enum.NewSafe[Role]("admin")
+    RoleUser  = enum.New[Role]("user")
+    RoleAdmin = enum.New[Role]("admin")
 )
 
 func main() {
@@ -301,9 +319,9 @@ type role any
 type Role struct { enum.SafeEnum[role] }
 
 var (
-    RoleUser  = enum.NewExtendedSafe[Role]("user")
-    RoleMod   = enum.NewExtendedSafe[Role]("mod")
-    RoleAdmin = enum.NewExtendedSafe[Role]("admin")
+    RoleUser  = enum.NewExtended[Role]("user")
+    RoleMod   = enum.NewExtended[Role]("mod")
+    RoleAdmin = enum.NewExtended[Role]("admin")
     _         = enum.Finalize[Role]()
 )
 

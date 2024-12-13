@@ -22,6 +22,7 @@ func TestEnumNew(t *testing.T) {
 
 	assert.Equal(t, RoleUser, Role(0))
 	assert.Equal(t, RoleAdmin, Role(1))
+	assert.Equal(t, "admin", enum.ToString(RoleAdmin))
 
 	type File int
 	var (
@@ -31,8 +32,22 @@ func TestEnumNew(t *testing.T) {
 
 	assert.Equal(t, FileImage, File(0))
 	assert.Equal(t, FilePDF, File(1))
+	assert.Equal(t, "pdf", enum.ToString(FilePDF))
 
 	assert.NotEqual(t, File(0), Role(0))
+}
+
+func TestEnumNewString(t *testing.T) {
+	type Role string
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, RoleUser, Role("user"))
+	assert.Equal(t, RoleAdmin, Role("admin"))
+	assert.Equal(t, "admin", enum.ToString(RoleAdmin))
+	assert.Equal(t, 1, enum.ToInt(RoleAdmin))
 }
 
 func TestEnumMap(t *testing.T) {
@@ -50,6 +65,23 @@ func TestEnumMap(t *testing.T) {
 	assert.Equal(t, enum.ToString(RoleUser), "user")
 	assert.Equal(t, enum.ToString(RoleAdmin), "admin")
 }
+
+func TestEnumMapDiffEnumber(t *testing.T) {
+	type Role int
+	const (
+		RoleUser Role = iota + 1
+		RoleAdmin
+	)
+
+	var (
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
+	)
+
+	assert.Equal(t, enum.ToInt(RoleUser), 1)
+	assert.Equal(t, enum.ToInt(RoleAdmin), 2)
+}
+
 func TestEnumFinalize(t *testing.T) {
 	type Role int
 	const (
@@ -280,7 +312,7 @@ func TestEnumValueSQL(t *testing.T) {
 	assert.Equal(t, "user", data)
 
 	_, err = enum.ValueSQL(Role(1))
-	assert.ErrorContains(t, err, "enum Role: invalid 1")
+	assert.ErrorContains(t, err, "enum Role: invalid value 1")
 }
 
 func TestEnumScanSQL(t *testing.T) {
@@ -380,4 +412,150 @@ func TestEnumPrintZeroStruct(t *testing.T) {
 	}
 
 	assert.Equal(t, "{0}", fmt.Sprint(User{}))
+}
+
+func TestNewExtendedSafe(t *testing.T) {
+	type Role struct{ enum.SafeEnum[int] }
+
+	var (
+		RoleUser  = enum.NewExtended[Role]("user")
+		RoleAdmin = enum.NewExtended[Role]("admin")
+	)
+
+	assert.Equal(t, "user", RoleUser.String())
+	assert.Equal(t, "admin", RoleAdmin.String())
+
+	user, ok := enum.FromString[Role]("user")
+	assert.True(t, ok)
+	assert.Equal(t, RoleUser, user)
+
+	assert.Equal(t, []Role{RoleUser, RoleAdmin}, enum.All[Role]())
+}
+
+func TestSafeEnumPrintZeroStruct(t *testing.T) {
+	type role any
+	type Role = enum.SafeEnum[role]
+
+	var (
+		_ = enum.New[Role]("user")
+	)
+
+	type User struct {
+		Role Role
+	}
+
+	assert.Equal(t, "{<nil>}", fmt.Sprint(User{}))
+}
+
+func TestWrapEnumPrintZeroStruct(t *testing.T) {
+	type role any
+	type Role = enum.WrapEnum[role]
+
+	var (
+		_ = enum.New[Role]("user")
+	)
+
+	type User struct {
+		Role Role
+	}
+
+	assert.Equal(t, "{user}", fmt.Sprint(User{}))
+}
+
+func TestEnumMarshalJSONInvalid(t *testing.T) {
+	type Role int
+
+	_, err := enum.MarshalJSON(Role(0))
+	assert.ErrorContains(t, err, "enum Role: invalid value 0")
+}
+
+func TestWrapEnumMarshalJSONInvalid(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	_, err := json.Marshal(Role(0))
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: invalid value 0")
+}
+
+func TestSafeEnumMarshalJSONInvalid(t *testing.T) {
+	type role int
+	type Role = enum.SafeEnum[role]
+
+	_, err := json.Marshal(Role{})
+	assert.ErrorContains(t, err, "enum SafeEnum[role]: invalid value <nil>")
+}
+
+func TestEnumUnmarshalJSONInvalid(t *testing.T) {
+	type Role int
+
+	var r Role
+	err := enum.UnmarshalJSON([]byte(`"invalid"`), &r)
+	assert.ErrorContains(t, err, "enum Role: unknown string invalid")
+}
+
+func TestWrapEnumUnmarshalJSONInvalid(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	var r Role
+	err := json.Unmarshal([]byte(`"invalid"`), &r)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: unknown string invalid")
+}
+
+func TestSafeEnumUnmarshalJSONInvalid(t *testing.T) {
+	type role int
+	type Role = enum.SafeEnum[role]
+
+	var r Role
+	err := json.Unmarshal([]byte(`"invalid"`), &r)
+	assert.ErrorContains(t, err, "enum SafeEnum[role]: unknown string invalid")
+}
+
+func TestEnumValueSQLInvalid(t *testing.T) {
+	type Role int
+
+	_, err := enum.ValueSQL(Role(0))
+	assert.ErrorContains(t, err, "enum Role: invalid value 0")
+}
+
+func TestWrapEnumValueSQLInvalid(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	_, err := enum.ValueSQL(Role(0))
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: invalid value 0")
+}
+
+func TestSafeEnumValueSQLInvalid(t *testing.T) {
+	type role int
+	type Role = enum.SafeEnum[role]
+
+	_, err := enum.ValueSQL(Role{})
+	assert.ErrorContains(t, err, "enum SafeEnum[role]: invalid value <nil>")
+}
+
+func TestEnumScanSQLInvalid(t *testing.T) {
+	type Role int
+
+	var r Role
+	err := enum.ScanSQL([]byte("invalid"), &r)
+	assert.ErrorContains(t, err, "enum Role: unknown string invalid")
+}
+
+func TestWrapEnumScanSQLInvalid(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	var r Role
+	err := enum.ScanSQL([]byte("invalid"), &r)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: unknown string invalid")
+}
+
+func TestSafeEnumScanSQLInvalid(t *testing.T) {
+	type role int
+	type Role = enum.SafeEnum[role]
+
+	var r Role
+	err := enum.ScanSQL([]byte("invalid"), &r)
+	assert.ErrorContains(t, err, "enum SafeEnum[role]: unknown string invalid")
 }

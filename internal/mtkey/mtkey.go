@@ -47,3 +47,19 @@ func (isFinalized[T]) InferValue() bool { panic("not implemented") }
 func IsFinalized[T any]() isFinalized[T] {
 	return isFinalized[T]{}
 }
+
+type nameOf[T any] struct{}
+
+func (nameOf[T]) InferValue() string { panic("not implemented") }
+
+func NameOf[T any]() nameOf[T] {
+	return nameOf[T]{}
+}
+
+type trueNameOf[T any] struct{}
+
+func (trueNameOf[T]) InferValue() string { panic("not implemented") }
+
+func TrueNameOf[T any]() trueNameOf[T] {
+	return trueNameOf[T]{}
+}
