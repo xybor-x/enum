@@ -3,6 +3,9 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
+	"strconv"
+
+	"github.com/xybor-x/enum/internal/core"
 )
 
 // WrapEnum provides a set of built-in methods to simplify working with enums.
@@ -38,8 +41,15 @@ func (e WrapEnum[underlyingEnum]) String() string {
 
 func (e WrapEnum[underlyingEnum]) GoString() string {
 	if !e.IsValid() {
-		return "<nil>"
+		return strconv.Itoa(int(e))
 	}
 
 	return fmt.Sprintf("%d (%s)", e, e)
+}
+
+// WARNING: Only use this function if you fully understand its behavior.
+// It might cause unexpected results if used improperly.
+func (e WrapEnum[underlyingEnum]) newInnerEnum(s string) any {
+	id := core.GetAvailableEnumValue[WrapEnum[underlyingEnum]]()
+	return core.MapAny(id, WrapEnum[underlyingEnum](id), s)
 }
