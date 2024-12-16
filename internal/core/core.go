@@ -17,11 +17,8 @@ func GetAvailableEnumValue[T any]() int64 {
 	return id
 }
 
-func MapAny[T any](num int64, value T, s string) T {
-	if num < 0 {
-		panic("not support negative enum value")
-	}
-
+// MapAny map the enum value to the enum system.
+func MapAny[Enum any](num int64, value Enum, s string) Enum {
 	if s == "" {
 		panic("not allow empty string representation in enum definition")
 	}
@@ -30,15 +27,15 @@ func MapAny[T any](num int64, value T, s string) T {
 		panic("not allow \"<nil>\" string representation in enum definition")
 	}
 
-	if ok := mtmap.MustGet(mtkey.IsFinalized[T]()); ok {
+	if ok := mtmap.MustGet(mtkey.IsFinalized[Enum]()); ok {
 		panic("enum is finalized")
 	}
 
-	if _, ok := mtmap.Get(mtkey.Int2Enum[T](num)); ok {
+	if _, ok := mtmap.Get(mtkey.Int2Enum[Enum](num)); ok {
 		panic("duplicate enum number is not allowed")
 	}
 
-	if _, ok := mtmap.Get(mtkey.String2Enum[T](s)); ok {
+	if _, ok := mtmap.Get(mtkey.String2Enum[Enum](s)); ok {
 		panic("duplicate enum string is not allowed")
 	}
 
@@ -48,12 +45,12 @@ func MapAny[T any](num int64, value T, s string) T {
 
 	mtmap.Set(mtkey.Enum2String(value), s)
 	mtmap.Set(mtkey.Enum2Int(value), num)
-	mtmap.Set(mtkey.String2Enum[T](s), value)
-	mtmap.Set(mtkey.Int2Enum[T](num), value)
+	mtmap.Set(mtkey.String2Enum[Enum](s), value)
+	mtmap.Set(mtkey.Int2Enum[Enum](num), value)
 
-	allVals := mtmap.MustGet(mtkey.AllEnums[T]())
+	allVals := mtmap.MustGet(mtkey.AllEnums[Enum]())
 	allVals = append(allVals, value)
-	mtmap.Set(mtkey.AllEnums[T](), allVals)
+	mtmap.Set(mtkey.AllEnums[Enum](), allVals)
 
 	return value
 }

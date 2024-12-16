@@ -22,12 +22,15 @@ import (
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
+	"github.com/xybor-x/enum/internal/xreflect"
 )
 
 // innerEnumable is an internal interface used for handling centralized
 // initialization via New function.
 type innerEnumable interface {
-	newInnerEnum(s string) any
+	// newEnum creates an enum value of the current type and map it into
+	// the enum system.
+	newEnum(id int64, s string) any
 }
 
 // Map associates an enum with its numeric and string representations. If the
@@ -35,16 +38,34 @@ type innerEnumable interface {
 // Otherwise, the library automatically assigns the smallest positive number
 // available to the enum.
 //
-// Note that this function is not thread-safe. Ensure mappings are set up during
+// Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
 func Map[Enum any](enum Enum, s string) Enum {
 	var id int64
+	switch {
+	case xreflect.IsInt[Enum]():
+		// In case the enum is an integer, it will be used directly as the
+		// numeric representation.
+		if xreflect.IsUnsignedInt[Enum]() {
+			number := xreflect.Convert[uint64](enum)
+			if number > math.MaxInt64 {
+				// To ensure there is no overflow problem happens while
+				// converting type, the library prevents cases of too large enum
+				// value.
+				//
+				// If this causes a problem in your use cases, please raise an
+				// issue on GitHub.
+				panic("invalid enum value: numeric representation is too large")
+			}
 
-	switch reflect.TypeOf(enum).Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		id = reflect.ValueOf(enum).Convert(reflect.TypeOf(int64(0))).Interface().(int64)
+			id = int64(number)
+		} else {
+			id = int64(xreflect.Convert[int64](enum))
+		}
+
 	default:
+		// Automatically assigns the smallest positive number available to the
+		// numeric representation.
 		id = core.GetAvailableEnumValue[Enum]()
 	}
 
@@ -52,38 +73,44 @@ func Map[Enum any](enum Enum, s string) Enum {
 }
 
 // New creates a dynamic enum value. The Enum type must be an int, string, or
-// supported enumable (e.g WrapEnum, SafeEnum).
+// supported enums (e.g WrapEnum, SafeEnum).
 //
-// This function provides a convenient way to define and map an enum value
-// without creating a constant explicitly.
+// The library automatically generates the smallest positive number available as
+// the numeric representation of enum.
 //
-// Note:
-//   - Enums created with this function are variables, not constants. If you
-//     need a constant enum, declare it explicitly and use enum.Map() instead.
-//   - This function is not thread-safe and should only be called during
-//     initialization or other safe execution points to avoid race conditions.
+// If the enum is
+//   - Integer: the numeric representation will be assigned to the enum value.
+//   - String: the parameter s will be assigned to the enum value.
+//   - Supported enum: the inner new function will be called to generate the
+//     enum value.
+//   - Other cases, panics.
+//
+// Note that this function is not thread-safe and should only be called during
+// initialization or other safe execution points to avoid race conditions.
 func New[Enum any](s string) Enum {
-	var enum Enum
-	if enumer, ok := any(enum).(innerEnumable); ok {
-		return enumer.newInnerEnum(s).(Enum)
-	}
-
 	id := core.GetAvailableEnumValue[Enum]()
 
-	switch reflect.TypeOf(enum).Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		enum = reflect.ValueOf(id).Convert(reflect.TypeOf((*Enum)(nil)).Elem()).Interface().(Enum)
-	case reflect.String:
-		enum = reflect.ValueOf(s).Convert(reflect.TypeOf((*Enum)(nil)).Elem()).Interface().(Enum)
+	switch {
+	case xreflect.IsInt[Enum]():
+		// The numeric representation will be used as the the enum value.
+		return core.MapAny(id, xreflect.Convert[Enum](id), s)
+	case xreflect.IsString[Enum]():
+		// The string representation will be used as the the enum value.
+		return core.MapAny(id, xreflect.Convert[Enum](s), s)
+	case xreflect.IsImplemented[Enum, innerEnumable]():
+		return xreflect.ImplementZero[Enum, innerEnumable]().newEnum(id, s).(Enum)
 	default:
-		panic("invalid enum type: require integer, string, or innerEnumable")
+		panic("invalid enum type: require integer, string, or innerEnumable, please use Map instead!")
 	}
-
-	return core.MapAny(id, enum, s)
 }
 
-// NewExtended helps to initialize the extended enum.
+// NewExtended initializes an extended enum.
+//
+// An extended enum follows this structure (the embedded Enum must be an
+// anonymous field to inherit its built-in methods):
+//
+//	type role any
+//	type Role struct { enum.SafeEnum[role] }
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
@@ -92,28 +119,40 @@ func NewExtended[T innerEnumable](s string) T {
 
 	extendEnumValue := reflect.ValueOf(&extendEnum).Elem()
 
+	// Seek the embedded enumable field, then init that field.
 	for i := 0; i < extendEnumValue.NumField(); i++ {
 		fieldType := reflect.TypeOf(extendEnum).Field(i)
+
+		// Ignore named fields.
 		if !fieldType.Anonymous {
 			continue
 		}
 
+		// Ignore non-enumable fields.
 		if !fieldType.Type.Implements(reflect.TypeOf((*innerEnumable)(nil)).Elem()) {
 			continue
 		}
 
-		fieldValue := extendEnumValue.FieldByName(fieldType.Name)
+		id := core.GetAvailableEnumValue[T]()
 
-		inner := fieldValue.Interface().(innerEnumable).newInnerEnum(s)
-		fieldValue.Set(reflect.ValueOf(inner))
+		// Set value to the embedded enumable field.
+		enumField := extendEnumValue.FieldByName(fieldType.Name)
+		enumField.Set(reflect.ValueOf(enumField.Interface().(innerEnumable).newEnum(id, s)))
 
-		return core.MapAny(core.GetAvailableEnumValue[T](), extendEnum, s)
+		// The newEnum method mapped the enum value to the system (see the
+		// description of the newEnum method). Why is MapAny called again here?
+		//
+		// The mapping in the newEnum method only applies the enum value to the
+		// embedded enum field type, not the extended enum type. To enable
+		// utility functions to work with the extended enum type, we need to map
+		// it again using MapAny.
+		return core.MapAny(id, extendEnum, s)
 	}
 
-	panic("NewExtended is only used to dynamically create an extended enum, please use New instead")
+	panic("invalid enum type: NewExtended is only used to create an extended enum, please use New or Map instead!")
 }
 
-// Finalize prevents any further creation of new enum values.
+// Finalize prevents the creation of any new enum values for the current type.
 func Finalize[Enum any]() bool {
 	mtmap.Set(mtkey.IsFinalized[Enum](), true)
 	return true

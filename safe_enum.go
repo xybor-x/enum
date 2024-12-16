@@ -56,10 +56,6 @@ func (e SafeEnum[underlyingEnum]) GoString() string {
 
 // WARNING: Only use this function if you fully understand its behavior.
 // It might cause unexpected results if used improperly.
-func (e SafeEnum[underlyingEnum]) newInnerEnum(s string) any {
-	return core.MapAny(
-		core.GetAvailableEnumValue[SafeEnum[underlyingEnum]](),
-		SafeEnum[underlyingEnum]{inner: s},
-		s,
-	)
+func (e SafeEnum[underlyingEnum]) newEnum(id int64, s string) any {
+	return core.MapAny(id, SafeEnum[underlyingEnum]{inner: s}, s)
 }
