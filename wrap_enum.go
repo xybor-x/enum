@@ -49,7 +49,6 @@ func (e WrapEnum[underlyingEnum]) GoString() string {
 
 // WARNING: Only use this function if you fully understand its behavior.
 // It might cause unexpected results if used improperly.
-func (e WrapEnum[underlyingEnum]) newInnerEnum(s string) any {
-	id := core.GetAvailableEnumValue[WrapEnum[underlyingEnum]]()
+func (e WrapEnum[underlyingEnum]) newEnum(id int64, s string) any {
 	return core.MapAny(id, WrapEnum[underlyingEnum](id), s)
 }
