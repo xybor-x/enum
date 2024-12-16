@@ -1,0 +1,53 @@
+package xmath
+
+import "math"
+
+const (
+	mask32  = 0xFF
+	shift32 = 32 - 8 - 1 // total 32 bits - exponent 8 bits - sign 1 bit
+	bias32  = 127
+)
+
+func Trunc32(f float32) float32 {
+	if f == 0 || IsNaN32(f) || IsInf32(f, 0) {
+		return f
+	}
+	d, _ := Modf32(f)
+	return d
+}
+
+func IsInf32(f float32, sign int) bool {
+	return sign >= 0 && f > math.MaxFloat32 || sign <= 0 && f < -math.MaxFloat32
+}
+
+func IsNaN32(f float32) bool {
+	return f != f
+}
+
+func Modf32(f float32) (int float32, frac float32) {
+	return modf32(f)
+}
+
+func modf32(f float32) (i float32, frac float32) {
+	if f < 1 {
+		switch {
+		case f < 0:
+			i, frac = Modf32(-f)
+			return -i, -frac
+		case f == 0:
+			return f, f // Return -0, -0 when f == -0
+		}
+		return 0, f
+	}
+
+	x := math.Float32bits(f)
+	e := uint(x>>shift32)&mask32 - bias32
+
+	// Keep the top 12+e bits, the integer part; clear the rest.
+	if e < 64-12 {
+		x &^= 1<<(64-12-e) - 1
+	}
+	i = math.Float32frombits(x)
+	frac = f - i
+	return
+}

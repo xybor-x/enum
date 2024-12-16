@@ -285,7 +285,7 @@ func TestEnumAll(t *testing.T) {
 	assert.Contains(t, all, RoleAdmin)
 }
 
-func TestEnumNonIntEnum(t *testing.T) {
+func TestEnumByte(t *testing.T) {
 	type Role byte
 
 	assert.Nil(t, enum.All[Role]())
@@ -295,9 +295,127 @@ func TestEnumNonIntEnum(t *testing.T) {
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	all := enum.All[Role]()
-	assert.Contains(t, all, RoleUser)
-	assert.Contains(t, all, RoleAdmin)
+	assert.Equal(t, []Role{RoleUser, RoleAdmin}, enum.All[Role]())
+}
+
+func TestEnumFloat32(t *testing.T) {
+	type Role float32
+
+	assert.Nil(t, enum.All[Role]())
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, []Role{RoleUser, RoleAdmin}, enum.All[Role]())
+}
+
+func TestEnumFloat32Map(t *testing.T) {
+	type Role float32
+
+	const (
+		RoleUser  Role = 1.13
+		RoleAdmin Role = 3.14
+	)
+
+	var (
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
+	)
+
+	role, ok := enum.FromNumber[Role](float32(1.13))
+	assert.True(t, ok)
+	assert.Equal(t, RoleUser, role)
+
+	role, ok = enum.FromNumber[Role](float32(3.14))
+	assert.True(t, ok)
+	assert.Equal(t, RoleAdmin, role)
+}
+
+func TestEnumFloat64Map(t *testing.T) {
+	type Role float64
+
+	const (
+		RoleUser  Role = 1.13
+		RoleAdmin Role = 3.14
+	)
+
+	var (
+		_ = enum.Map(RoleUser, "user")
+		_ = enum.Map(RoleAdmin, "admin")
+	)
+
+	role, ok := enum.FromNumber[Role](float64(1.13))
+	assert.True(t, ok)
+	assert.Equal(t, RoleUser, role)
+
+	role, ok = enum.FromNumber[Role](float64(3.14))
+	assert.True(t, ok)
+	assert.Equal(t, RoleAdmin, role)
+}
+
+func TestEnumFloat32LikeInt(t *testing.T) {
+	type Role float32
+
+	assert.Nil(t, enum.All[Role]())
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, []Role{RoleUser, RoleAdmin}, enum.All[Role]())
+
+	role, ok := enum.FromNumber[Role](0)
+	assert.True(t, ok)
+	assert.Equal(t, RoleUser, role)
+
+	role, ok = enum.FromNumber[Role](1)
+	assert.True(t, ok)
+	assert.Equal(t, RoleAdmin, role)
+}
+
+func TestEnumFloat64LikeInt(t *testing.T) {
+	type Role float32
+
+	assert.Nil(t, enum.All[Role]())
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, []Role{RoleUser, RoleAdmin}, enum.All[Role]())
+
+	role, ok := enum.FromNumber[Role](0)
+	assert.True(t, ok)
+	assert.Equal(t, RoleUser, role)
+
+	role, ok = enum.FromNumber[Role](1)
+	assert.True(t, ok)
+	assert.Equal(t, RoleAdmin, role)
+}
+
+func TestEnumIntFromFloat64(t *testing.T) {
+	type Role int
+
+	assert.Nil(t, enum.All[Role]())
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, []Role{RoleUser, RoleAdmin}, enum.All[Role]())
+
+	role, ok := enum.FromNumber[Role](float64(0))
+	assert.True(t, ok)
+	assert.Equal(t, RoleUser, role)
+
+	role, ok = enum.FromNumber[Role](float64(1))
+	assert.True(t, ok)
+	assert.Equal(t, RoleAdmin, role)
 }
 
 func TestEnumValueSQL(t *testing.T) {

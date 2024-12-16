@@ -1,5 +1,7 @@
 package mtkey
 
+import "github.com/xybor-x/enum/internal/xreflect"
+
 type enum2String[T any] struct{ key T }
 
 func (enum2String[T]) InferValue() string { panic("not implemented") }
@@ -8,12 +10,12 @@ func Enum2String[T any](enum T) enum2String[T] {
 	return enum2String[T]{key: enum}
 }
 
-type enum2Int[T any] struct{ key T }
+type enum2Number[T any, N xreflect.Number] struct{ key T }
 
-func (enum2Int[T]) InferValue() int64 { panic("not implemented") }
+func (enum2Number[T, N]) InferValue() N { panic("not implemented") }
 
-func Enum2Int[T any](enum T) enum2Int[T] {
-	return enum2Int[T]{key: enum}
+func Enum2Number[T any, N xreflect.Number](enum T) enum2Number[T, N] {
+	return enum2Number[T, N]{key: enum}
 }
 
 type string2Enum[T any] struct{ key string }
@@ -24,12 +26,12 @@ func String2Enum[T any](s string) string2Enum[T] {
 	return string2Enum[T]{key: s}
 }
 
-type num2Enum[T any] struct{ key int64 }
+type number2Enum[T any] struct{ key any }
 
-func (num2Enum[T]) InferValue() T { panic("not implemented") }
+func (number2Enum[T]) InferValue() T { panic("not implemented") }
 
-func Int2Enum[T any](key int64) num2Enum[T] {
-	return num2Enum[T]{key: key}
+func Number2Enum[N xreflect.Number, T any](key N) number2Enum[T] {
+	return number2Enum[T]{key: key}
 }
 
 type allEnums[T any] struct{}
