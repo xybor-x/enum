@@ -187,12 +187,12 @@ if ok {
 }
 ```
 
-### FromInt
+### FromNumber
 
-`FromInt` returns the corresponding `enum` for a given `int` representation, and whether it is valid.
+`FromNumber` returns the corresponding `enum` for a given numeric representation, and whether it is valid.
 
 ```go
-role, ok := enum.FromInt[Role](42)
+role, ok := enum.FromNumber[Role](42)
 if ok {
     fmt.Println(role)
 } else {
@@ -217,15 +217,6 @@ fmt.Println(enum.IsValid(Role(42)))  // false
 ```go
 fmt.Println(enum.ToString(RoleAdmin))  // Output: "admin"
 fmt.Println(enum.ToString(Role(42)))   // Output: "<nil>"
-```
-
-### ToInt
-
-`ToInt` converts an `enum` to `int`.  It returns the smallest number of `int` for invalid enums.
-
-```go
-fmt.Println(enum.ToInt(RoleAdmin))  // Output: 1
-fmt.Println(enum.ToInt(Role(42)))   // Output: -2147483648
 ```
 
 ### All
