@@ -41,7 +41,7 @@ func (e *SafeEnum[underlyingEnum]) Scan(a any) error {
 }
 
 func (e SafeEnum[underlyingEnum]) Int() int {
-	return mtmap.MustGet(mtkey.Enum2Number[SafeEnum[underlyingEnum], int](e))
+	return mtmap.Get(mtkey.Enum2Number[SafeEnum[underlyingEnum], int](e))
 }
 
 func (e SafeEnum[underlyingEnum]) String() string {

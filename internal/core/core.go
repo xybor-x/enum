@@ -12,7 +12,7 @@ import (
 func GetAvailableEnumValue[T any]() int64 {
 	id := int64(0)
 	for {
-		if _, ok := mtmap.Get(mtkey.Number2Enum[int64, T](id)); !ok {
+		if _, ok := mtmap.Get2(mtkey.Number2Enum[int64, T](id)); !ok {
 			break
 		}
 		id++
@@ -23,45 +23,41 @@ func GetAvailableEnumValue[T any]() int64 {
 
 // MapAny map the enum value to the enum system.
 func MapAny[N xreflect.Number, Enum any](id N, enum Enum, s string) Enum {
-	if s == "" {
-		panic("not allow empty string representation in enum definition")
-	}
-
-	if s == "<nil>" {
-		panic("not allow \"<nil>\" string representation in enum definition")
-	}
-
-	if ok := mtmap.MustGet(mtkey.IsFinalized[Enum]()); ok {
+	if ok := mtmap.Get(mtkey.IsFinalized[Enum]()); ok {
 		panic("enum is finalized")
 	}
 
-	if _, ok := mtmap.Get(mtkey.Number2Enum[N, Enum](id)); ok {
+	if _, ok := mtmap.Get2(mtkey.Number2Enum[N, Enum](id)); ok {
 		panic("duplicate enum number is not allowed")
 	}
 
-	if _, ok := mtmap.Get(mtkey.String2Enum[Enum](s)); ok {
+	if _, ok := mtmap.Get2(mtkey.String2Enum[Enum](s)); ok {
 		panic("duplicate enum string is not allowed")
 	}
 
-	if _, ok := mtmap.Get(mtkey.Enum2Number[Enum, N](enum)); ok {
+	if _, ok := mtmap.Get2(mtkey.Enum2Number[Enum, N](enum)); ok {
 		panic("duplicate enum is not allowed")
 	}
 
 	mtmap.Set(mtkey.Enum2String(enum), s)
 	mtmap.Set(mtkey.String2Enum[Enum](s), enum)
-	mapnumber(enum, id)
+	mapEnumNumber(enum, id)
 
-	allVals := mtmap.MustGet(mtkey.AllEnums[Enum]())
+	allVals := mtmap.Get(mtkey.AllEnums[Enum]())
 	allVals = append(allVals, enum)
 	mtmap.Set(mtkey.AllEnums[Enum](), allVals)
 
 	return enum
 }
 
-func mapnumber[Enum any, N xreflect.Number](enum Enum, n N) {
-	// Only map the enum to integer if the enum is represented by integer
+// mapEnumNumber maps the enum to all its number representations (including
+// signed and unsigned integers, floating-point numbers) and vice versa.
+func mapEnumNumber[Enum any, N xreflect.Number](enum Enum, n N) {
+	// Only map the enum to integers if the enum is represented by integer
 	// values, where the integer corresponds to the actual numeric value,
 	// regardless of the underlying type.
+	//
+	// For example: float32(3) is also an integer, whereas float32(0.7) is not.
 	mapInteger := true
 	if xreflect.IsFloat32[N]() {
 		mapInteger = xreflect.Convert[float32](n) == xmath.Trunc32(xreflect.Convert[float32](n))

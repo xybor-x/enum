@@ -3,14 +3,14 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
-	"strconv"
 
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
 )
 
-// WrapEnum provides a set of built-in methods to simplify working with enums.
+// WrapEnum provides a set of built-in methods to simplify working with int64
+// enums.
 type WrapEnum[underlyingEnum any] int64
 
 func (e WrapEnum[underlyingEnum]) IsValid() bool {
@@ -33,8 +33,11 @@ func (e *WrapEnum[underlyingEnum]) Scan(a any) error {
 	return ScanSQL(a, e)
 }
 
+// Int returns the int representation of the enum.
+//
+// DEPRECATED: directly cast the enum to int instead.
 func (e WrapEnum[underlyingEnum]) Int() int {
-	return mtmap.MustGet(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
+	return mtmap.Get(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
 }
 
 func (e WrapEnum[underlyingEnum]) String() string {
@@ -43,7 +46,7 @@ func (e WrapEnum[underlyingEnum]) String() string {
 
 func (e WrapEnum[underlyingEnum]) GoString() string {
 	if !e.IsValid() {
-		return strconv.Itoa(int(e))
+		return fmt.Sprintf("%d", e)
 	}
 
 	return fmt.Sprintf("%d (%s)", e, e)
