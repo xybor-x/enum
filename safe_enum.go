@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/xybor-x/enum/internal/core"
+	"github.com/xybor-x/enum/internal/mtkey"
+	"github.com/xybor-x/enum/internal/mtmap"
 )
 
 // SafeEnum defines a strong type-safe enum. Like WrapEnum, it provides a set
@@ -39,7 +41,7 @@ func (e *SafeEnum[underlyingEnum]) Scan(a any) error {
 }
 
 func (e SafeEnum[underlyingEnum]) Int() int {
-	return ToInt(e)
+	return mtmap.Get(mtkey.Enum2Number[SafeEnum[underlyingEnum], int](e))
 }
 
 func (e SafeEnum[underlyingEnum]) String() string {
@@ -56,10 +58,6 @@ func (e SafeEnum[underlyingEnum]) GoString() string {
 
 // WARNING: Only use this function if you fully understand its behavior.
 // It might cause unexpected results if used improperly.
-func (e SafeEnum[underlyingEnum]) newInnerEnum(s string) any {
-	return core.MapAny(
-		core.GetAvailableEnumValue[SafeEnum[underlyingEnum]](),
-		SafeEnum[underlyingEnum]{inner: s},
-		s,
-	)
+func (e SafeEnum[underlyingEnum]) newEnum(id int64, s string) any {
+	return core.MapAny(id, SafeEnum[underlyingEnum]{inner: s}, s)
 }

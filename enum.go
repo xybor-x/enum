@@ -22,68 +22,90 @@ import (
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
+	"github.com/xybor-x/enum/internal/xreflect"
 )
 
 // innerEnumable is an internal interface used for handling centralized
 // initialization via New function.
 type innerEnumable interface {
-	newInnerEnum(s string) any
+	// newEnum creates a dynamic enum value of the current type and map it into
+	// the enum system.
+	newEnum(id int64, s string) any
 }
 
 // Map associates an enum with its numeric and string representations. If the
-// enum is an integer, its value will be used as the numeric representation.
-// Otherwise, the library automatically assigns the smallest positive number
-// available to the enum.
+// enum is a number, its value will be used as the numeric representation.
+// Otherwise, the library automatically assigns the smallest positive integer
+// number available to the enum.
 //
-// Note that this function is not thread-safe. Ensure mappings are set up during
+// Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
 func Map[Enum any](enum Enum, s string) Enum {
-	var id int64
+	switch {
+	case xreflect.IsSignedInt[Enum]():
+		return core.MapAny(xreflect.Convert[int64](enum), enum, s)
 
-	switch reflect.TypeOf(enum).Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		id = reflect.ValueOf(enum).Convert(reflect.TypeOf(int64(0))).Interface().(int64)
+	case xreflect.IsUnsignedInt[Enum]():
+		return core.MapAny(xreflect.Convert[uint64](enum), enum, s)
+
+	case xreflect.IsFloat32[Enum]():
+		return core.MapAny(xreflect.Convert[float32](enum), enum, s)
+
+	case xreflect.IsFloat64[Enum]():
+		return core.MapAny(xreflect.Convert[float64](enum), enum, s)
+
 	default:
-		id = core.GetAvailableEnumValue[Enum]()
+		// Automatically assigns the smallest positive number available to the
+		// numeric representation.
+		return core.MapAny(core.GetAvailableEnumValue[Enum](), enum, s)
 	}
-
-	return core.MapAny(id, enum, s)
 }
 
-// New creates a dynamic enum value. The Enum type must be an int, string, or
-// supported enumable (e.g WrapEnum, SafeEnum).
+// New creates a dynamic enum value. The Enum type must be a number, string, or
+// supported enums (e.g WrapEnum, SafeEnum).
 //
-// This function provides a convenient way to define and map an enum value
-// without creating a constant explicitly.
+// The library automatically generates the smallest positive integer number
+// available as the numeric representation of enum.
 //
-// Note:
-//   - Enums created with this function are variables, not constants. If you
-//     need a constant enum, declare it explicitly and use enum.Map() instead.
-//   - This function is not thread-safe and should only be called during
-//     initialization or other safe execution points to avoid race conditions.
+// If the enum is
+//   - Supported enum: the inner new function will be called to generate the
+//     enum value.
+//   - Number: the numeric representation will be assigned to the enum value.
+//   - String: the string representation will be assigned to the enum value.
+//   - Other cases, panics.
+//
+// Note that this function is not thread-safe and should only be called during
+// initialization or other safe execution points to avoid race conditions.
 func New[Enum any](s string) Enum {
-	var enum Enum
-	if enumer, ok := any(enum).(innerEnumable); ok {
-		return enumer.newInnerEnum(s).(Enum)
-	}
-
 	id := core.GetAvailableEnumValue[Enum]()
 
-	switch reflect.TypeOf(enum).Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		enum = reflect.ValueOf(id).Convert(reflect.TypeOf((*Enum)(nil)).Elem()).Interface().(Enum)
-	case reflect.String:
-		enum = reflect.ValueOf(s).Convert(reflect.TypeOf((*Enum)(nil)).Elem()).Interface().(Enum)
-	default:
-		panic("invalid enum type: require integer, string, or innerEnumable")
-	}
+	switch {
+	case xreflect.IsImplemented[Enum, innerEnumable]():
+		return xreflect.ImplementZero[Enum, innerEnumable]().newEnum(id, s).(Enum)
 
-	return core.MapAny(id, enum, s)
+	case xreflect.IsNumber[Enum]():
+		// The numeric representation will be used as the the enum value.
+		return core.MapAny(id, xreflect.Convert[Enum](id), s)
+
+	case xreflect.IsString[Enum]():
+		// The string representation will be used as the the enum value.
+		return core.MapAny(id, xreflect.Convert[Enum](s), s)
+
+	default:
+		// TODO: For the Enum type, I want to use type constraints to allow
+		// numbers, strings, and innerEnumable. However, type constraints
+		// currently prevent combining unions with interfaces.
+		panic("invalid enum type: require integer, string, or innerEnumable, otherwise use Map instead!")
+	}
 }
 
-// NewExtended helps to initialize the extended enum.
+// NewExtended initializes an extended enum.
+//
+// An extended enum follows this structure (the embedded Enum must be an
+// anonymous field to inherit its built-in methods):
+//
+//	type role any
+//	type Role struct { enum.SafeEnum[role] }
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
@@ -92,28 +114,40 @@ func NewExtended[T innerEnumable](s string) T {
 
 	extendEnumValue := reflect.ValueOf(&extendEnum).Elem()
 
+	// Seek the embedded enumable field, then init that field.
 	for i := 0; i < extendEnumValue.NumField(); i++ {
 		fieldType := reflect.TypeOf(extendEnum).Field(i)
+
+		// Ignore named fields.
 		if !fieldType.Anonymous {
 			continue
 		}
 
+		// Ignore non-enumable fields.
 		if !fieldType.Type.Implements(reflect.TypeOf((*innerEnumable)(nil)).Elem()) {
 			continue
 		}
 
-		fieldValue := extendEnumValue.FieldByName(fieldType.Name)
+		id := core.GetAvailableEnumValue[T]()
 
-		inner := fieldValue.Interface().(innerEnumable).newInnerEnum(s)
-		fieldValue.Set(reflect.ValueOf(inner))
+		// Set value to the embedded enumable field.
+		enumField := extendEnumValue.FieldByName(fieldType.Name)
+		enumField.Set(reflect.ValueOf(enumField.Interface().(innerEnumable).newEnum(id, s)))
 
-		return core.MapAny(core.GetAvailableEnumValue[T](), extendEnum, s)
+		// The newEnum method mapped the enum value to the system (see the
+		// description of the newEnum method). Why is MapAny called again here?
+		//
+		// The mapping in the newEnum method only applies the enum value to the
+		// embedded enum field type, not the extended enum type. To enable
+		// utility functions to work with the extended enum type, we need to map
+		// it again using MapAny.
+		return core.MapAny(id, extendEnum, s)
 	}
 
-	panic("NewExtended is only used to dynamically create an extended enum, please use New instead")
+	panic("invalid enum type: NewExtended is only used to create an extended enum, otherwise use New or Map instead!")
 }
 
-// Finalize prevents any further creation of new enum values.
+// Finalize prevents the creation of any new enum values for the current type.
 func Finalize[Enum any]() bool {
 	mtmap.Set(mtkey.IsFinalized[Enum](), true)
 	return true
@@ -121,13 +155,23 @@ func Finalize[Enum any]() bool {
 
 // FromInt returns the corresponding enum for a given int representation, and
 // whether it is valid.
+//
+// DEPRECATED: Use FromNumber instead.
 func FromInt[Enum any](i int) (Enum, bool) {
-	return mtmap.Get(mtkey.Int2Enum[Enum](int64(i)))
+	return mtmap.Get2(mtkey.Number2Enum[int, Enum](i))
+}
+
+// FromNumber returns the corresponding enum for a given number representation,
+// and whether it is valid.
+func FromNumber[Enum any, N xreflect.Number](n N) (Enum, bool) {
+	return mtmap.Get2(mtkey.Number2Enum[N, Enum](n))
 }
 
 // MustFromInt returns the corresponding enum for a given int representation.
 //
 // It panics if the enum value is invalid.
+//
+// DEPRECATED: Use MustFromNumber instead.
 func MustFromInt[Enum any](i int) Enum {
 	t, ok := FromInt[Enum](i)
 	if !ok {
@@ -137,10 +181,23 @@ func MustFromInt[Enum any](i int) Enum {
 	return t
 }
 
+// MustFromNumber returns the corresponding enum for a given number
+// representation.
+//
+// It panics if the enum value is invalid.
+func MustFromNumber[Enum any, N xreflect.Number](n N) Enum {
+	t, ok := FromNumber[Enum](n)
+	if !ok {
+		panic(fmt.Sprintf("enum %s: invalid number %v", TrueNameOf[Enum](), n))
+	}
+
+	return t
+}
+
 // FromString returns the corresponding enum for a given string representation,
 // and whether it is valid.
 func FromString[Enum any](s string) (Enum, bool) {
-	return mtmap.Get(mtkey.String2Enum[Enum](s))
+	return mtmap.Get2(mtkey.String2Enum[Enum](s))
 }
 
 // MustFromString returns the corresponding enum for a given string
@@ -159,7 +216,7 @@ func MustFromString[Enum any](s string) Enum {
 // ToString returns the string representation of the given enum value. It
 // returns <nil> for invalid enums.
 func ToString[Enum any](value Enum) string {
-	str, ok := mtmap.Get(mtkey.Enum2String(value))
+	str, ok := mtmap.Get2(mtkey.Enum2String(value))
 	if !ok {
 		return "<nil>"
 	}
@@ -169,19 +226,21 @@ func ToString[Enum any](value Enum) string {
 
 // ToInt returns the int representation for the given enum value. It returns the
 // smallest value of int (math.MinInt32) for invalid enums.
+//
+// DEPRECATED: It is only valid if the enum is not a floating-point number.
 func ToInt[Enum any](enum Enum) int {
-	value, ok := mtmap.Get(mtkey.Enum2Int(enum))
+	value, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
 	if !ok {
 		return math.MinInt32
 	}
 
-	return int(value)
+	return value
 }
 
 // IsValid checks if an enum value is valid.
 // It returns true if the enum value is valid, and false otherwise.
 func IsValid[Enum any](value Enum) bool {
-	_, ok := mtmap.Get(mtkey.Enum2String(value))
+	_, ok := mtmap.Get2(mtkey.Enum2String(value))
 	return ok
 }
 
@@ -244,7 +303,7 @@ func ScanSQL[Enum any](a any, value *Enum) error {
 
 // All returns a slice containing all enum values of a specific type.
 func All[Enum any]() []Enum {
-	return mtmap.MustGet(mtkey.AllEnums[Enum]())
+	return mtmap.Get(mtkey.AllEnums[Enum]())
 }
 
 var advancedEnumNames = []string{"WrapEnum", "SafeEnum"}
@@ -258,7 +317,7 @@ var advancedEnumNames = []string{"WrapEnum", "SafeEnum"}
 //	NameOf[Role]()           = "Role"
 //	NameOf[WrapEnum[role]]() = "Role"
 func NameOf[T any]() string {
-	if name, ok := mtmap.Get(mtkey.NameOf[T]()); ok {
+	if name, ok := mtmap.Get2(mtkey.NameOf[T]()); ok {
 		return name
 	}
 
@@ -283,7 +342,7 @@ func NameOf[T any]() string {
 //	TrueNameOf[Role]()           = "Role"
 //	TrueNameOf[WrapEnum[role]]() = "WrapEnum[role]"
 func TrueNameOf[T any]() string {
-	if name, ok := mtmap.Get(mtkey.TrueNameOf[T]()); ok {
+	if name, ok := mtmap.Get2(mtkey.TrueNameOf[T]()); ok {
 		return name
 	}
 
