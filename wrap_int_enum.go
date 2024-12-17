@@ -9,9 +9,9 @@ import (
 	"github.com/xybor-x/enum/internal/mtmap"
 )
 
-// WrapEnum provides a set of built-in methods to simplify working with int64
+// WrapEnum provides a set of built-in methods to simplify working with int
 // enums.
-type WrapEnum[underlyingEnum any] int64
+type WrapEnum[underlyingEnum any] int
 
 func (e WrapEnum[underlyingEnum]) IsValid() bool {
 	return IsValid(e)
