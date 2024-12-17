@@ -10,7 +10,8 @@ import (
 	"github.com/xybor-x/enum/internal/mtmap"
 )
 
-// WrapEnum provides a set of built-in methods to simplify working with enums.
+// WrapEnum provides a set of built-in methods to simplify working with int64
+// enums.
 type WrapEnum[underlyingEnum any] int64
 
 func (e WrapEnum[underlyingEnum]) IsValid() bool {
@@ -33,8 +34,11 @@ func (e *WrapEnum[underlyingEnum]) Scan(a any) error {
 	return ScanSQL(a, e)
 }
 
+// Int returns the int representation of the enum.
+//
+// DEPRECATED: cast the enum to int instead.
 func (e WrapEnum[underlyingEnum]) Int() int {
-	return mtmap.MustGet(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
+	return mtmap.Get(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
 }
 
 func (e WrapEnum[underlyingEnum]) String() string {

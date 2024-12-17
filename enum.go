@@ -28,8 +28,8 @@ import (
 // innerEnumable is an internal interface used for handling centralized
 // initialization via New function.
 type innerEnumable interface {
-	// newEnum creates an enum value of the current type and map it into the
-	// enum system.
+	// newEnum creates a dynamic enum value of the current type and map it into
+	// the enum system.
 	newEnum(id int64, s string) any
 }
 
@@ -158,13 +158,13 @@ func Finalize[Enum any]() bool {
 //
 // DEPRECATED: Use FromNumber instead.
 func FromInt[Enum any](i int) (Enum, bool) {
-	return mtmap.Get(mtkey.Number2Enum[int, Enum](i))
+	return mtmap.Get2(mtkey.Number2Enum[int, Enum](i))
 }
 
 // FromNumber returns the corresponding enum for a given number representation,
 // and whether it is valid.
 func FromNumber[Enum any, N xreflect.Number](n N) (Enum, bool) {
-	return mtmap.Get(mtkey.Number2Enum[N, Enum](n))
+	return mtmap.Get2(mtkey.Number2Enum[N, Enum](n))
 }
 
 // MustFromInt returns the corresponding enum for a given int representation.
@@ -197,7 +197,7 @@ func MustFromNumber[Enum any, N xreflect.Number](n N) Enum {
 // FromString returns the corresponding enum for a given string representation,
 // and whether it is valid.
 func FromString[Enum any](s string) (Enum, bool) {
-	return mtmap.Get(mtkey.String2Enum[Enum](s))
+	return mtmap.Get2(mtkey.String2Enum[Enum](s))
 }
 
 // MustFromString returns the corresponding enum for a given string
@@ -216,7 +216,7 @@ func MustFromString[Enum any](s string) Enum {
 // ToString returns the string representation of the given enum value. It
 // returns <nil> for invalid enums.
 func ToString[Enum any](value Enum) string {
-	str, ok := mtmap.Get(mtkey.Enum2String(value))
+	str, ok := mtmap.Get2(mtkey.Enum2String(value))
 	if !ok {
 		return "<nil>"
 	}
@@ -229,7 +229,7 @@ func ToString[Enum any](value Enum) string {
 //
 // DEPRECATED: It is only valid if the enum is not a floating-point number.
 func ToInt[Enum any](enum Enum) int {
-	value, ok := mtmap.Get(mtkey.Enum2Number[Enum, int](enum))
+	value, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
 	if !ok {
 		return math.MinInt32
 	}
@@ -240,7 +240,7 @@ func ToInt[Enum any](enum Enum) int {
 // IsValid checks if an enum value is valid.
 // It returns true if the enum value is valid, and false otherwise.
 func IsValid[Enum any](value Enum) bool {
-	_, ok := mtmap.Get(mtkey.Enum2String(value))
+	_, ok := mtmap.Get2(mtkey.Enum2String(value))
 	return ok
 }
 
@@ -303,7 +303,7 @@ func ScanSQL[Enum any](a any, value *Enum) error {
 
 // All returns a slice containing all enum values of a specific type.
 func All[Enum any]() []Enum {
-	return mtmap.MustGet(mtkey.AllEnums[Enum]())
+	return mtmap.Get(mtkey.AllEnums[Enum]())
 }
 
 var advancedEnumNames = []string{"WrapEnum", "SafeEnum"}
@@ -317,7 +317,7 @@ var advancedEnumNames = []string{"WrapEnum", "SafeEnum"}
 //	NameOf[Role]()           = "Role"
 //	NameOf[WrapEnum[role]]() = "Role"
 func NameOf[T any]() string {
-	if name, ok := mtmap.Get(mtkey.NameOf[T]()); ok {
+	if name, ok := mtmap.Get2(mtkey.NameOf[T]()); ok {
 		return name
 	}
 
@@ -342,7 +342,7 @@ func NameOf[T any]() string {
 //	TrueNameOf[Role]()           = "Role"
 //	TrueNameOf[WrapEnum[role]]() = "WrapEnum[role]"
 func TrueNameOf[T any]() string {
-	if name, ok := mtmap.Get(mtkey.TrueNameOf[T]()); ok {
+	if name, ok := mtmap.Get2(mtkey.TrueNameOf[T]()); ok {
 		return name
 	}
 

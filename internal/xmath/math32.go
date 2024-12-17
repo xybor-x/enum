@@ -8,6 +8,9 @@ const (
 	bias32  = 127
 )
 
+// Trunc32 is similar to math.Trunc, but for float32 instead.
+//
+// The implementation is copied and modified from math.Trunc.
 func Trunc32(f float32) float32 {
 	if f == 0 || IsNaN32(f) || IsInf32(f, 0) {
 		return f
@@ -43,9 +46,9 @@ func modf32(f float32) (i float32, frac float32) {
 	x := math.Float32bits(f)
 	e := uint(x>>shift32)&mask32 - bias32
 
-	// Keep the top 12+e bits, the integer part; clear the rest.
-	if e < 64-12 {
-		x &^= 1<<(64-12-e) - 1
+	// Keep the top 9+e bits, the integer part; clear the rest.
+	if e < 32-9 {
+		x &^= 1<<(32-9-e) - 1
 	}
 	i = math.Float32frombits(x)
 	frac = f - i

@@ -8,7 +8,7 @@ type mtKeyer[V any] interface {
 	InferValue() V
 }
 
-func GetM[V any](m *MTMap, key mtKeyer[V]) (V, bool) {
+func Get2M[V any](m *MTMap, key mtKeyer[V]) (V, bool) {
 	var zero V
 	if m.data == nil {
 		return zero, false
@@ -36,8 +36,8 @@ func GetM[V any](m *MTMap, key mtKeyer[V]) (V, bool) {
 	}
 }
 
-func MustGetM[V any](m *MTMap, key mtKeyer[V]) V {
-	v, _ := GetM(m, key)
+func GetM[V any](m *MTMap, key mtKeyer[V]) V {
+	v, _ := Get2M(m, key)
 	return v
 }
 
