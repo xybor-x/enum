@@ -3,7 +3,6 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
-	"strconv"
 
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/mtkey"
@@ -36,7 +35,7 @@ func (e *WrapEnum[underlyingEnum]) Scan(a any) error {
 
 // Int returns the int representation of the enum.
 //
-// DEPRECATED: cast the enum to int instead.
+// DEPRECATED: directly cast the enum to int instead.
 func (e WrapEnum[underlyingEnum]) Int() int {
 	return mtmap.Get(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
 }
@@ -47,7 +46,7 @@ func (e WrapEnum[underlyingEnum]) String() string {
 
 func (e WrapEnum[underlyingEnum]) GoString() string {
 	if !e.IsValid() {
-		return strconv.Itoa(int(e))
+		return fmt.Sprintf("%d", e)
 	}
 
 	return fmt.Sprintf("%d (%s)", e, e)

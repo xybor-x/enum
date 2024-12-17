@@ -3,7 +3,6 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
-	"strconv"
 
 	"github.com/xybor-x/enum/internal/core"
 )
@@ -38,7 +37,7 @@ func (e WrapUintEnum[underlyingEnum]) String() string {
 
 func (e WrapUintEnum[underlyingEnum]) GoString() string {
 	if !e.IsValid() {
-		return strconv.Itoa(int(e))
+		return fmt.Sprintf("%d", e)
 	}
 
 	return fmt.Sprintf("%d (%s)", e, e)
