@@ -101,10 +101,10 @@ func init() {
 
 ## ⭐ WrapEnum
 
-`WrapEnum` offers a set of built-in methods to simplify working with `int64` enums.
+`WrapEnum` offers a set of built-in methods to simplify working with `int` enums.
 
 > [!TIP]
-> For other numeric types, use `WrapUintEnum` for `uint64` and `WrapFloatEnum` for `float64`.
+> For other numeric types, use `WrapUintEnum` for `uint` and `WrapFloatEnum` for `float64`.
 
 **Pros 💪**
 - Supports constant values ([#][5]).
