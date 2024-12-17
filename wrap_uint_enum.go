@@ -7,9 +7,9 @@ import (
 	"github.com/xybor-x/enum/internal/core"
 )
 
-// WrapUintEnum provides a set of built-in methods to simplify working with
-// uint64 enums.
-type WrapUintEnum[underlyingEnum any] uint64
+// WrapUintEnum provides a set of built-in methods to simplify working with uint
+// enums.
+type WrapUintEnum[underlyingEnum any] uint
 
 func (e WrapUintEnum[underlyingEnum]) IsValid() bool {
 	return IsValid(e)
