@@ -226,7 +226,8 @@ func ToString[Enum any](value Enum) string {
 // ToInt returns the int representation for the given enum value. It returns the
 // smallest value of int (math.MinInt32) for invalid enums.
 //
-// DEPRECATED: It is only valid if the enum is not a floating-point number
+// DEPRECATED: This function returns math.MinInt32 for invalid enums, which may
+// cause unexpected behavior.
 func ToInt[Enum any](enum Enum) int {
 	n, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
 	if !ok {
