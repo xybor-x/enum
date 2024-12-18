@@ -2,6 +2,7 @@ package core
 
 import (
 	"math"
+	"strconv"
 
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
@@ -39,6 +40,7 @@ func MapAny[N xreflect.Number, Enum any](id N, enum Enum, s string) Enum {
 		panic("duplicate enum is not allowed")
 	}
 
+	mtmap.Set(mtkey.EnumToJSON(enum), strconv.Quote(s))
 	mtmap.Set(mtkey.Enum2String(enum), s)
 	mtmap.Set(mtkey.String2Enum[Enum](s), enum)
 	mapEnumNumber(enum, id)

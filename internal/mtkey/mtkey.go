@@ -65,3 +65,11 @@ func (trueNameOf[T]) InferValue() string { panic("not implemented") }
 func TrueNameOf[T any]() trueNameOf[T] {
 	return trueNameOf[T]{}
 }
+
+type enumToJSON[T any] struct{ key T }
+
+func (enumToJSON[T]) InferValue() string { panic("not implemented") }
+
+func EnumToJSON[T any](key T) enumToJSON[T] {
+	return enumToJSON[T]{key: key}
+}
