@@ -353,7 +353,7 @@ The benchmark results are based on defining an enum with 10 values at [bench](./
 | --------------- | -------------: | --------------: |
 | ToString        |          17 ns |            6 ns |
 | FromString      |          22 ns |           15 ns |
-| json.Marshal    |         118 ns |          113 ns |
+| json.Marshal    |         148 ns |          113 ns |
 | json.Unmarshal  |         144 ns |          147 ns |
 | SQL Value       |          38 ns |           29 ns |
 | SQL Scan bytes  |          41 ns |           29 ns |

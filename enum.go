@@ -13,6 +13,7 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
+	"math"
 	"path"
 	"reflect"
 	"strings"
@@ -151,10 +152,32 @@ func Finalize[Enum any]() bool {
 	return true
 }
 
+// FromInt returns the corresponding enum for a given int representation, and
+// whether it is valid.
+//
+// DEPRECATED: Use FromNumber instead.
+func FromInt[Enum any](i int) (Enum, bool) {
+	return mtmap.Get2(mtkey.Number2Enum[int, Enum](i))
+}
+
 // FromNumber returns the corresponding enum for a given number representation,
 // and whether it is valid.
 func FromNumber[Enum any, N xreflect.Number](n N) (Enum, bool) {
 	return mtmap.Get2(mtkey.Number2Enum[N, Enum](n))
+}
+
+// MustFromInt returns the corresponding enum for a given int representation.
+//
+// It panics if the enum value is invalid.
+//
+// DEPRECATED: Use MustFromNumber instead.
+func MustFromInt[Enum any](i int) Enum {
+	t, ok := FromInt[Enum](i)
+	if !ok {
+		panic(fmt.Sprintf("enum %s: invalid int %d", TrueNameOf[Enum](), i))
+	}
+
+	return t
 }
 
 // MustFromNumber returns the corresponding enum for a given number
@@ -200,6 +223,17 @@ func ToString[Enum any](value Enum) string {
 	return str
 }
 
+// ToInt returns the int representation for the given enum value. It returns the
+// smallest value of int (math.MinInt32) for invalid enums.
+func ToInt[Enum any](enum Enum) int {
+	n, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
+	if !ok {
+		return math.MinInt32
+	}
+
+	return n
+}
+
 // MustToNumber returns the numeric representation for the given enum value.
 //
 // It panics if the provided enum is invalid. Use it with caution.
@@ -240,28 +274,6 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](string(data[1 : n-1])))
 	if !ok {
 		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), string(data[1:n-1]))
-	}
-
-	*t = enum
-	return nil
-}
-
-// MarshalText serializes an enum value into its string representation.
-func MarshalText[Enum any](value Enum) ([]byte, error) {
-	s, ok := mtmap.Get2(mtkey.Enum2String(value))
-	if !ok {
-		return nil, fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), value)
-	}
-
-	return []byte(s), nil
-}
-
-// UnmarshalText deserializes a string representation of an enum value from
-// JSON.
-func UnmarshalText[Enum any](data []byte, t *Enum) (err error) {
-	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](string(data)))
-	if !ok {
-		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), string(data))
 	}
 
 	*t = enum
