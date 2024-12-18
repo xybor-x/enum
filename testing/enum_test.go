@@ -263,7 +263,7 @@ func TestEnumUnmarshalJSON(t *testing.T) {
 
 	// Invalid data
 	err = enum.UnmarshalJSON([]byte(`user"`), &data)
-	assert.ErrorContains(t, err, "invalid character")
+	assert.ErrorContains(t, err, "invalid string")
 
 	// Invalid enum
 	err = enum.UnmarshalJSON([]byte(`"admin"`), &data)

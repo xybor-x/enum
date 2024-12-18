@@ -323,3 +323,30 @@ func (r Role) HasPermission() bool {
     return r == RoleMod || r == RoleAdmin
 }
 ```
+
+
+## Performance
+
+While it's true that the `xybor-x/enum` approach will generally be slower than the code generation approach, I still want to highlight the difference.
+
+The benchmark results are based on defining an enum with 10 values at [bench](./bench).
+
+|                 | `xybor-x/enum` | Code generation |
+| --------------- | -------------: | --------------: |
+| ToString        |          17 ns |            6 ns |
+| FromString      |          22 ns |           15 ns |
+| json.Marshal    |         148 ns |          113 ns |
+| json.Unmarshal  |         144 ns |          147 ns |
+| SQL Value       |          38 ns |           29 ns |
+| SQL Scan bytes  |          41 ns |           29 ns |
+| SQL Scan string |          22 ns |           15 ns |
+
+
+## V2 roadmap
+
+- Switch from `json.Marshaler` to `encoding.TextMarshaler` for better performance.
+- New function allocates from 1 instead 0.
+- Allow defining which enum supports default value or nil value.
+- Remove deprecated items.
+
+**Contributions and suggestions to refine the roadmap are welcome!**
