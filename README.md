@@ -250,6 +250,24 @@ Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
 - `SQL`: Implements `driver.Valuer` and `sql.Scanner`.
 
+## 🔅 Nullable
+
+The `Nullable` option allows handling nullable enums in both JSON and SQL.
+
+```go
+type Role int
+type NullRole = enum.Nullable[Role]
+
+type User struct {
+    ID   int      `json:"id"`
+    Role NullRole `json:"role"`
+}
+
+func main() {
+    fmt.Println(json.Marshal(User{})) // {"id": 0, "user": null}
+}
+```
+
 ## 🔅 Type safety
 
 The [WrapEnum][2] prevents most invalid enum cases due to built-in methods for serialization and deserialization, offering **basic type safety**.
@@ -340,13 +358,3 @@ The benchmark results are based on defining an enum with 10 values at [bench](./
 | SQL Value       |          38 ns |           29 ns |
 | SQL Scan bytes  |          41 ns |           29 ns |
 | SQL Scan string |          22 ns |           15 ns |
-
-
-## V2 roadmap
-
-- Switch from `json.Marshaler` to `encoding.TextMarshaler` for better performance.
-- New function allocates from 1 instead 0.
-- Allow defining which enum supports default value or nil value.
-- Remove deprecated items.
-
-**Contributions and suggestions to refine the roadmap are welcome!**

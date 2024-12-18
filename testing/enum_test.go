@@ -1,10 +1,9 @@
-package testing
+package testing_test
 
 import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -78,8 +77,8 @@ func TestEnumMapDiffEnumber(t *testing.T) {
 		_ = enum.Map(RoleAdmin, "admin")
 	)
 
-	assert.Equal(t, enum.ToInt(RoleUser), 1)
-	assert.Equal(t, enum.ToInt(RoleAdmin), 2)
+	assert.Equal(t, int(RoleUser), 1)
+	assert.Equal(t, int(RoleAdmin), 2)
 }
 
 func TestEnumFinalize(t *testing.T) {
@@ -160,7 +159,7 @@ func TestEnumMustFromString(t *testing.T) {
 	assert.Panics(t, func() { enum.MustFromString[Role]("moderator") })
 }
 
-func TestEnumFromInt(t *testing.T) {
+func TestEnumFromNumber(t *testing.T) {
 	type Role int
 
 	var (
@@ -168,11 +167,11 @@ func TestEnumFromInt(t *testing.T) {
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	userRole, ok := enum.FromInt[Role](0)
+	userRole, ok := enum.FromNumber[Role](0)
 	assert.True(t, ok)
 	assert.Equal(t, userRole, RoleUser)
 
-	adminRole, ok := enum.FromInt[Role](1)
+	adminRole, ok := enum.FromNumber[Role](1)
 	assert.True(t, ok)
 	assert.Equal(t, adminRole, RoleAdmin)
 
@@ -180,34 +179,19 @@ func TestEnumFromInt(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestEnumMustFromInt(t *testing.T) {
+func TestEnumMustFromNumber(t *testing.T) {
 	type Role int
 
-	assert.Panics(t, func() { enum.MustFromInt[Role](0) })
+	assert.Panics(t, func() { enum.MustFromNumber[Role](0) })
 
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
 	)
 
-	assert.Equal(t, enum.MustFromInt[Role](0), RoleUser)
-	assert.Equal(t, enum.MustFromInt[Role](1), RoleAdmin)
-	assert.Panics(t, func() { enum.MustFromInt[Role](2) })
-}
-
-func TestEnumMustToInt(t *testing.T) {
-	type Role int
-
-	assert.Equal(t, enum.ToInt(Role(42)), math.MinInt32)
-
-	var (
-		RoleUser  = enum.New[Role]("user")
-		RoleAdmin = enum.New[Role]("admin")
-	)
-
-	assert.Equal(t, enum.ToInt(RoleUser), 0)
-	assert.Equal(t, enum.ToInt(RoleAdmin), 1)
-	assert.Equal(t, enum.ToInt(Role(42)), math.MinInt32)
+	assert.Equal(t, enum.MustFromNumber[Role](0), RoleUser)
+	assert.Equal(t, enum.MustFromNumber[Role](1), RoleAdmin)
+	assert.Panics(t, func() { enum.MustFromNumber[Role](2) })
 }
 
 func TestEnumUndefined(t *testing.T) {
@@ -300,6 +284,19 @@ func TestEnumByte(t *testing.T) {
 
 func TestEnumFloat32(t *testing.T) {
 	type Role float32
+
+	assert.Nil(t, enum.All[Role]())
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, []Role{RoleUser, RoleAdmin}, enum.All[Role]())
+}
+
+func TestEnumFloat64(t *testing.T) {
+	type Role float64
 
 	assert.Nil(t, enum.All[Role]())
 
@@ -418,6 +415,20 @@ func TestEnumIntFromFloat64(t *testing.T) {
 	assert.Equal(t, RoleAdmin, role)
 }
 
+func TestEnumNameOf(t *testing.T) {
+	type Role int
+	assert.Equal(t, "Role", enum.NameOf[Role]())
+	assert.Equal(t, "Role", enum.NameOf[Role]())
+
+	type weekday any
+	type Weekday = enum.WrapEnum[weekday]
+	assert.Equal(t, "Weekday", enum.NameOf[Weekday]())
+
+	type someURL any
+	type SomeURL = enum.WrapEnum[someURL]
+	assert.Equal(t, "SomeURL", enum.NameOf[SomeURL]())
+}
+
 func TestEnumValueSQL(t *testing.T) {
 	type Role int
 
@@ -532,7 +543,7 @@ func TestEnumPrintZeroStruct(t *testing.T) {
 	assert.Equal(t, "{0}", fmt.Sprint(User{}))
 }
 
-func TestNewExtendedSafe(t *testing.T) {
+func TestNewExtended(t *testing.T) {
 	type Role struct{ enum.SafeEnum[int] }
 
 	var (

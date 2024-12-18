@@ -53,7 +53,7 @@ func (e SafeEnum[underlyingEnum]) GoString() string {
 		return "<nil>"
 	}
 
-	return fmt.Sprintf("%d (%s)", ToInt(e), e.inner)
+	return fmt.Sprintf("%d (%s)", e.Int(), e.inner)
 }
 
 // WARNING: Only use this function if you fully understand its behavior.

@@ -59,7 +59,6 @@ func ExampleMap() {
 }
 
 func ExampleWrapEnum() {
-	// Define a generic enum type
 	type role any
 	type Role = enum.WrapEnum[role]
 
@@ -104,18 +103,16 @@ func ExampleWrapEnum() {
 }
 
 func ExampleSafeEnum() {
-	// Define a generic enum type
 	type role string
 	type Role = enum.SafeEnum[role]
 
-	// Define enum values for Role using iota
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
 		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
 	)
 
-	// As Role is a StructEnum, it can utilize methods from StructEnum, including
+	// As Role is a SafeEnum, it can utilize methods from SafeEnum, including
 	// utility functions and serde operations.
 	fmt.Println(RoleUser.GoString()) // 0 (user)
 	fmt.Println(RoleUser.IsValid())  // true
@@ -149,4 +146,35 @@ func ExampleSafeEnum() {
 	// cannot serialize zero struct
 	// {"id":0,"name":"tester","role":"admin"}
 	// admin
+}
+
+func ExampleNullable() {
+	type Role int
+	type NullRole = enum.Nullable[Role]
+
+	var (
+		_         = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+	)
+
+	// Define a struct that includes the Role enum.
+	type User struct {
+		ID   int      `json:"id"`
+		Name string   `json:"name"`
+		Role NullRole `json:"role"`
+	}
+
+	// Serialize zero struct
+	data, _ := json.Marshal(User{})
+	fmt.Println(string(data))
+
+	// Serialize the User struct to JSON.
+	user1 := User{ID: 0, Name: "tester", Role: NullRole{Enum: RoleAdmin, Valid: true}}
+	data, _ = json.Marshal(user1)
+	fmt.Println(string(data))
+
+	// Output:
+	// {"id":0,"name":"","role":null}
+	// {"id":0,"name":"tester","role":"admin"}
 }
