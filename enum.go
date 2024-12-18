@@ -13,7 +13,6 @@ package enum
 import (
 	"database/sql/driver"
 	"fmt"
-	"math"
 	"path"
 	"reflect"
 	"strings"
@@ -152,32 +151,10 @@ func Finalize[Enum any]() bool {
 	return true
 }
 
-// FromInt returns the corresponding enum for a given int representation, and
-// whether it is valid.
-//
-// DEPRECATED: Use FromNumber instead.
-func FromInt[Enum any](i int) (Enum, bool) {
-	return mtmap.Get2(mtkey.Number2Enum[int, Enum](i))
-}
-
 // FromNumber returns the corresponding enum for a given number representation,
 // and whether it is valid.
 func FromNumber[Enum any, N xreflect.Number](n N) (Enum, bool) {
 	return mtmap.Get2(mtkey.Number2Enum[N, Enum](n))
-}
-
-// MustFromInt returns the corresponding enum for a given int representation.
-//
-// It panics if the enum value is invalid.
-//
-// DEPRECATED: Use MustFromNumber instead.
-func MustFromInt[Enum any](i int) Enum {
-	t, ok := FromInt[Enum](i)
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid int %d", TrueNameOf[Enum](), i))
-	}
-
-	return t
 }
 
 // MustFromNumber returns the corresponding enum for a given number
@@ -223,17 +200,16 @@ func ToString[Enum any](value Enum) string {
 	return str
 }
 
-// ToInt returns the int representation for the given enum value. It returns the
-// smallest value of int (math.MinInt32) for invalid enums.
+// MustToNumber returns the numeric representation for the given enum value.
 //
-// DEPRECATED: It is only valid if the enum is not a floating-point number.
-func ToInt[Enum any](enum Enum) int {
-	value, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
+// It panics if the provided enum is invalid. Use it with caution.
+func MustToNumber[N xreflect.Number, Enum any](enum Enum) N {
+	n, ok := mtmap.Get2(mtkey.Enum2Number[Enum, N](enum))
 	if !ok {
-		return math.MinInt32
+		panic(fmt.Sprintf("enum %s: invalid enum %#v", TrueNameOf[Enum](), enum))
 	}
 
-	return value
+	return n
 }
 
 // IsValid checks if an enum value is valid.
@@ -264,6 +240,28 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](string(data[1 : n-1])))
 	if !ok {
 		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), string(data[1:n-1]))
+	}
+
+	*t = enum
+	return nil
+}
+
+// MarshalText serializes an enum value into its string representation.
+func MarshalText[Enum any](value Enum) ([]byte, error) {
+	s, ok := mtmap.Get2(mtkey.Enum2String(value))
+	if !ok {
+		return nil, fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), value)
+	}
+
+	return []byte(s), nil
+}
+
+// UnmarshalText deserializes a string representation of an enum value from
+// JSON.
+func UnmarshalText[Enum any](data []byte, t *Enum) (err error) {
+	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](string(data)))
+	if !ok {
+		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), string(data))
 	}
 
 	*t = enum
@@ -306,7 +304,7 @@ func All[Enum any]() []Enum {
 	return mtmap.Get(mtkey.AllEnums[Enum]())
 }
 
-var advancedEnumNames = []string{"WrapEnum", "SafeEnum"}
+var advancedEnumNames = []string{"WrapEnum", "WrapUintEnum", "WrapFloatEnum", "SafeEnum"}
 
 // NameOf returns the name of the enum type. In case of this is an advanced enum
 // provided by this library, this function returns the only underlying enum

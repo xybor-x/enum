@@ -10,10 +10,10 @@ import (
 	"github.com/xybor-x/enum/internal/xreflect"
 )
 
-func GetAvailableEnumValue[T any]() int64 {
+func GetAvailableEnumValue[Enum any]() int64 {
 	id := int64(0)
 	for {
-		if _, ok := mtmap.Get2(mtkey.Number2Enum[int64, T](id)); !ok {
+		if _, ok := mtmap.Get2(mtkey.Number2Enum[int64, Enum](id)); !ok {
 			break
 		}
 		id++
@@ -24,7 +24,7 @@ func GetAvailableEnumValue[T any]() int64 {
 
 // MapAny map the enum value to the enum system.
 func MapAny[N xreflect.Number, Enum any](id N, enum Enum, s string) Enum {
-	if ok := mtmap.Get(mtkey.IsFinalized[Enum]()); ok {
+	if mtmap.Get(mtkey.IsFinalized[Enum]()) {
 		panic("enum is finalized")
 	}
 

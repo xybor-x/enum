@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"github.com/xybor-x/enum/internal/core"
-	"github.com/xybor-x/enum/internal/mtkey"
-	"github.com/xybor-x/enum/internal/mtmap"
 )
 
 // WrapEnum provides a set of built-in methods to simplify working with int
@@ -17,12 +15,12 @@ func (e WrapEnum[underlyingEnum]) IsValid() bool {
 	return IsValid(e)
 }
 
-func (e WrapEnum[underlyingEnum]) MarshalJSON() ([]byte, error) {
-	return MarshalJSON(e)
+func (e WrapEnum[underlyingEnum]) MarshalText() ([]byte, error) {
+	return MarshalText(e)
 }
 
-func (e *WrapEnum[underlyingEnum]) UnmarshalJSON(data []byte) error {
-	return UnmarshalJSON(data, e)
+func (e *WrapEnum[underlyingEnum]) UnmarshalText(data []byte) error {
+	return UnmarshalText(data, e)
 }
 
 func (e WrapEnum[underlyingEnum]) Value() (driver.Value, error) {
@@ -31,13 +29,6 @@ func (e WrapEnum[underlyingEnum]) Value() (driver.Value, error) {
 
 func (e *WrapEnum[underlyingEnum]) Scan(a any) error {
 	return ScanSQL(a, e)
-}
-
-// Int returns the int representation of the enum.
-//
-// DEPRECATED: directly cast the enum to int instead.
-func (e WrapEnum[underlyingEnum]) Int() int {
-	return mtmap.Get(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
 }
 
 func (e WrapEnum[underlyingEnum]) String() string {

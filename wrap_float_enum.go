@@ -15,12 +15,12 @@ func (e WrapFloatEnum[underlyingEnum]) IsValid() bool {
 	return IsValid(e)
 }
 
-func (e WrapFloatEnum[underlyingEnum]) MarshalJSON() ([]byte, error) {
-	return MarshalJSON(e)
+func (e WrapFloatEnum[underlyingEnum]) MarshalText() ([]byte, error) {
+	return MarshalText(e)
 }
 
-func (e *WrapFloatEnum[underlyingEnum]) UnmarshalJSON(data []byte) error {
-	return UnmarshalJSON(data, e)
+func (e *WrapFloatEnum[underlyingEnum]) UnmarshalText(data []byte) error {
+	return UnmarshalText(data, e)
 }
 
 func (e WrapFloatEnum[underlyingEnum]) Value() (driver.Value, error) {

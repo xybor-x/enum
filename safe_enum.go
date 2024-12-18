@@ -24,12 +24,12 @@ func (e SafeEnum[underlyingEnum]) IsValid() bool {
 	return IsValid(e)
 }
 
-func (e SafeEnum[underlyingEnum]) MarshalJSON() ([]byte, error) {
-	return MarshalJSON(e)
+func (e SafeEnum[underlyingEnum]) MarshalText() ([]byte, error) {
+	return MarshalText(e)
 }
 
-func (e *SafeEnum[underlyingEnum]) UnmarshalJSON(data []byte) error {
-	return UnmarshalJSON(data, e)
+func (e *SafeEnum[underlyingEnum]) UnmarshalText(data []byte) error {
+	return UnmarshalText(data, e)
 }
 
 func (e SafeEnum[underlyingEnum]) Value() (driver.Value, error) {
@@ -53,7 +53,7 @@ func (e SafeEnum[underlyingEnum]) GoString() string {
 		return "<nil>"
 	}
 
-	return fmt.Sprintf("%d (%s)", ToInt(e), e.inner)
+	return fmt.Sprintf("%d (%s)", e.Int(), e.inner)
 }
 
 // WARNING: Only use this function if you fully understand its behavior.
