@@ -46,7 +46,7 @@ func TestEnumNewString(t *testing.T) {
 	assert.Equal(t, RoleUser, Role("user"))
 	assert.Equal(t, RoleAdmin, Role("admin"))
 	assert.Equal(t, "admin", enum.ToString(RoleAdmin))
-	assert.Equal(t, 1, enum.MustToNumber[int](RoleAdmin))
+	assert.Equal(t, 1, enum.ToInt(RoleAdmin))
 }
 
 func TestEnumMap(t *testing.T) {
@@ -77,8 +77,8 @@ func TestEnumMapDiffEnumber(t *testing.T) {
 		_ = enum.Map(RoleAdmin, "admin")
 	)
 
-	assert.Equal(t, enum.MustToNumber[int](RoleUser), 1)
-	assert.Equal(t, enum.MustToNumber[int](RoleAdmin), 2)
+	assert.Equal(t, int(RoleUser), 1)
+	assert.Equal(t, int(RoleAdmin), 2)
 }
 
 func TestEnumFinalize(t *testing.T) {
@@ -192,18 +192,6 @@ func TestEnumMustFromNumber(t *testing.T) {
 	assert.Equal(t, enum.MustFromNumber[Role](0), RoleUser)
 	assert.Equal(t, enum.MustFromNumber[Role](1), RoleAdmin)
 	assert.Panics(t, func() { enum.MustFromNumber[Role](2) })
-}
-
-func TestEnumMustToNumber(t *testing.T) {
-	type Role int
-
-	var (
-		RoleUser  = enum.New[Role]("user")
-		RoleAdmin = enum.New[Role]("admin")
-	)
-
-	assert.Equal(t, enum.MustToNumber[int](RoleUser), 0)
-	assert.Equal(t, enum.MustToNumber[int](RoleAdmin), 1)
 }
 
 func TestEnumUndefined(t *testing.T) {

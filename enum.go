@@ -225,22 +225,12 @@ func ToString[Enum any](value Enum) string {
 
 // ToInt returns the int representation for the given enum value. It returns the
 // smallest value of int (math.MinInt32) for invalid enums.
+//
+// DEPRECATED: It is only valid if the enum is not a floating-point number
 func ToInt[Enum any](enum Enum) int {
 	n, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
 	if !ok {
 		return math.MinInt32
-	}
-
-	return n
-}
-
-// MustToNumber returns the numeric representation for the given enum value.
-//
-// It panics if the provided enum is invalid. Use it with caution.
-func MustToNumber[N xreflect.Number, Enum any](enum Enum) N {
-	n, ok := mtmap.Get2(mtkey.Enum2Number[Enum, N](enum))
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid enum %#v", TrueNameOf[Enum](), enum))
 	}
 
 	return n
