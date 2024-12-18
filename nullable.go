@@ -1,8 +1,6 @@
 package enum
 
-import (
-	"database/sql/driver"
-)
+import "database/sql/driver"
 
 // Nullable allows handling nullable enums in both JSON and SQL.
 type Nullable[Enum any] struct {
