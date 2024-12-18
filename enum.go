@@ -229,12 +229,12 @@ func ToString[Enum any](value Enum) string {
 // DEPRECATED: This function returns math.MinInt32 for invalid enums, which may
 // cause unexpected behavior.
 func ToInt[Enum any](enum Enum) int {
-	n, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
+	value, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
 	if !ok {
 		return math.MinInt32
 	}
 
-	return n
+	return value
 }
 
 // IsValid checks if an enum value is valid.
