@@ -1,8 +1,6 @@
 package mtkey
 
-import (
-	"github.com/xybor-x/enum/internal/xreflect"
-)
+import "github.com/xybor-x/enum/internal/xreflect"
 
 type enum2String[T any] struct{ key T }
 
