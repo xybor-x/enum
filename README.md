@@ -308,7 +308,7 @@ type User struct {
 }
 
 func main() {
-    fmt.Println(json.Marshal(User{})) // {"id": 0, "user": null}
+    fmt.Println(json.Marshal(User{})) // {"id": 0, "role": null}
 }
 ```
 
