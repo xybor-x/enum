@@ -230,7 +230,7 @@ Currently supported:
 
 ## 🔅 Nullable
 
-The `Nullable` struct transforms an enum type into a nullable enum, akin to `sql.NullXXX`, and is designed to handle nullable values in both JSON and SQL.
+The `Nullable` transforms an enum type into a nullable enum, akin to `sql.NullXXX`, and is designed to handle nullable values in both JSON and SQL.
 
 ```go
 type Role int
@@ -256,7 +256,7 @@ However, it is still possible to accidentally create an invalid enum value, like
 moderator := Role(42) // Invalid enum value
 ```
 
-The [SafeEnum][3] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` object without explicitly using the `NewSafe` function or zero initialization.
+The [SafeEnum][3] provides **strong type safety**, ensuring that only predefined enum values are allowed. There is no way to create a new `SafeEnum` object without explicitly using the `New` function or zero initialization.
 
 ```go
 moderator := Role(42)          // Compile-time error

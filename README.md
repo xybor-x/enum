@@ -37,11 +37,11 @@ const (
     RoleAdmin
 )
 
-var (
-    _ = enum.Map(RoleUser, "user")
-    _ = enum.Map(RoleAdmin, "admin")
-    _ = enum.Finalize[Role]()
-)
+func init() {
+    enum.Map(RoleUser, "user")
+    enum.Map(RoleAdmin, "admin")
+    enum.Finalize[Role]()
+}
 ```
 
 > [!CAUTION]
