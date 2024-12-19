@@ -384,7 +384,7 @@ func (r Role) HasPermission() bool {
 ```
 
 
-## Performance
+## 📈 Performance
 
 While it's true that the `xybor-x/enum` approach will generally be slower than the code generation approach, I still want to highlight the difference.
 
