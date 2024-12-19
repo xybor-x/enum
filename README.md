@@ -10,6 +10,10 @@
 
 **Elegant, powerful, and dependency-free enums for Go with zero code generation!**
 
+> [!TIP]
+> This is just a ⚡ quick tutorial for general use cases.
+> See more advanced features at [documentations](./docs.md).
+
 ## 🔧 Installation
 
 ```sh
@@ -17,10 +21,6 @@ go get -u github.com/xybor-x/enum
 ```
 
 ## ⚡ Quick start
-
-> [!TIP]
-> This is just a ⚡ quick definition for general use cases.
-> See more advanced features at [documentations](./docs.md).
 
 ### Define
 
