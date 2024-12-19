@@ -22,11 +22,11 @@ go get -u github.com/xybor-x/enum
 > This is just a ⚡ quick definition for general use cases.
 > See more advanced features at [documentations](./docs.md).
 
+### Define
+
 > [!CAUTION]
 > Enum definitions are not thread-safe.
 > Therefore, they should be finalized during initialization (at the global scope).
-
-### Define
 
 ```go
 package main
