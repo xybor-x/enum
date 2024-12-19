@@ -293,7 +293,7 @@ Currently supported:
 
 ## 🔅 Nullable
 
-The `Nullable` option allows handling nullable enums in both JSON and SQL.
+The `Nullable` struct transforms an enum type into a nullable enum, akin to `sql.NullXXX`, and is designed to handle nullable values in both JSON and SQL.
 
 ```go
 type Role int
