@@ -22,7 +22,7 @@ go get -u github.com/xybor-x/enum
 
 ## ⚡ Quick start
 
-### Define enum
+### Define enums
 
 ```go
 package main
