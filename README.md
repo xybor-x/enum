@@ -19,6 +19,34 @@
 [7]: #-type-safety
 [8]: #-nullable
 
+## Table of contents
+
+- [⚙️ Go Enum](#️-go-enum)
+  - [Table of contents](#table-of-contents)
+  - [🔧 Installation](#-installation)
+  - [⚡ Quick start](#-quick-start)
+      - [Definition](#definition)
+      - [Usage](#usage)
+  - [📋 Features](#-features)
+  - [⭐ Basic enum](#-basic-enum)
+  - [⭐ WrapEnum](#-wrapenum)
+  - [⭐ SafeEnum](#-safeenum)
+  - [💡 Utility functions](#-utility-functions)
+    - [FromString](#fromstring)
+    - [FromNumber](#fromnumber)
+    - [IsValid](#isvalid)
+    - [ToString](#tostring)
+    - [All](#all)
+  - [🔅 Constant support](#-constant-support)
+  - [🔅 Serialization and deserialization](#-serialization-and-deserialization)
+  - [🔅 Nullable](#-nullable)
+  - [🔅 Type safety](#-type-safety)
+  - [🔅 Extensible](#-extensible)
+    - [Extend basic enum](#extend-basic-enum)
+    - [Extend WrapEnum](#extend-wrapenum)
+    - [Extend SafeEnum](#extend-safeenum)
+  - [📈 Performance](#-performance)
+
 ## 🔧 Installation
 
 ```sh
