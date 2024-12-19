@@ -386,7 +386,7 @@ func (r Role) HasPermission() bool {
 
 ## 📈 Performance
 
-While it's true that the `xybor-x/enum` approach will generally be slower than the code generation approach, I still want to highlight the difference.
+While it's true that the `xybor-x/enum` approach will generally be slower than the code generation approaches, I still want to highlight the difference.
 
 The benchmark results are based on defining an enum with 10 values at [bench](./bench).
 
