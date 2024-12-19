@@ -17,6 +17,7 @@
 [5]: #-constant-support
 [6]: #-serialization-and-deserialization
 [7]: #-type-safety
+[8]: #-nullable
 
 ## 🔧 Installation
 
@@ -38,22 +39,60 @@ go get -u github.com/xybor-x/enum
 ```go
 package main
 
+import "github.com/xybor-x/enum"
+
 type role any
-type Role = enum.SafeEnum[role]
+type Role = enum.WrapEnum[role]
+
+// Optional: NullRole is similar to sql.NullXXX structs, designed to handle 
+// nullable SQL and JSON fields.
+type NullRole = enum.Nullable[Role]
+
+const (
+    RoleUser Role = iota
+    RoleAdmin
+)
 
 var (
-    RoleUser  = enum.New[Role]("user")
-    RoleAdmin = enum.New[Role]("admin")
-    _         = enum.Finalize[Role]()
+    _ = enum.Map(RoleUser, "user")
+    _ = enum.Map(RoleAdmin, "admin")
+    _ = enum.Finalize[Role]()
 )
+```
+
+```go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+type User struct {
+    Role Role `json:"role"`
+}
+
+type NullUser struct {
+    Role NullRole `json:"role"`
+}
 
 func main() {
     // Print out the string representation of enum.
     fmt.Println(RoleAdmin) // Output: admin
 
-    // Serialize a user to json format.
-    data, _ := json.Marshal(RoleUser) 
-    fmt.Println(string(data)) // Output: "user"
+    // Serialize a user to json.
+    user := User{Role: RoleUser}
+    data, _ := json.Marshal(user) 
+    fmt.Println(string(data)) // Output: {"role": "user"}
+
+    // Serialize a nullable role with not-null value.
+    nulluser := NullUser{Role: NullRole{Enum: RoleUser, Valid: true}}
+    data, _ := json.Marshal(nulluser) 
+    fmt.Println(string(data)) // Output: {"role": "user"}
+
+    // Serialize a nullable role with null value.
+    data, _ = json.Marshal(NullUser{})
+    fmt.Println(string(data)) // Output: {"role": null}
 }
 ```
 
@@ -62,12 +101,14 @@ func main() {
 > [!TIP]
 > `xybor-x/enum` supports three enum types: **Basic enum** for simplicity, **Wrap enum** for enhanced functionality, and **Safe enum** for strict type safety.
 
-|                                                | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
+| Features                                       | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
 | ---------------------------------------------- | ------------------- | ------------------ | ------------------ |
+| **Underlying type required**                   | **No**              | Yes                | Yes                |
 | **Built-in methods**                           | No                  | **Yes**            | **Yes**            |
 | **Constant enum** ([#][5])                     | **Yes**             | **Yes**            | No                 |
 | **Serialization and deserialization** ([#][6]) | No                  | **Yes**            | **Yes**            |
 | **Type safety** ([#][7])                       | No                  | Basic              | **Strong**         |
+| **Used with Nullable** ([#][8])                | **Yes**             | **Yes**            | **Yes**            |
 
 ## ⭐ Basic enum
 
