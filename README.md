@@ -12,7 +12,7 @@
 
 > [!TIP]
 > This is just a ⚡ quick tutorial for general use cases.
-> See more advanced features at [documentations](./docs.md).
+> See more advanced features at the [documentation](./docs.md).
 
 ## 🔧 Installation
 
@@ -23,10 +23,6 @@ go get -u github.com/xybor-x/enum
 ## ⚡ Quick start
 
 ### Define enum
-
-> [!CAUTION]
-> Enum definitions are not thread-safe.
-> Therefore, they should be finalized during initialization (at the global scope).
 
 ```go
 package main
@@ -47,6 +43,10 @@ var (
     _ = enum.Finalize[Role]()
 )
 ```
+
+> [!CAUTION]
+> Enum definitions are not thread-safe.
+> Therefore, they should be finalized during initialization (at the global scope).
 
 ### Usage
 
@@ -108,12 +108,12 @@ While it's true that the `xybor-x/enum` approach will generally be slower than t
 
 The benchmark results are based on defining an enum with 10 values at [bench](./bench).
 
-|                 | `xybor-x/enum` | Code generation |
-| --------------- | -------------: | --------------: |
-| ToString        |          17 ns |            6 ns |
-| FromString      |          22 ns |           15 ns |
-| json.Marshal    |         148 ns |          113 ns |
-| json.Unmarshal  |         144 ns |          147 ns |
-| SQL Value       |          38 ns |           29 ns |
-| SQL Scan bytes  |          41 ns |           29 ns |
-| SQL Scan string |          22 ns |           15 ns |
+|                   | `xybor-x/enum` | Code generation |
+| ----------------- | -------------: | --------------: |
+| ToString          |          17 ns |            6 ns |
+| FromString        |          22 ns |           15 ns |
+| json.Marshal      |         148 ns |          113 ns |
+| json.Unmarshal    |         144 ns |          147 ns |
+| SQL Value         |          38 ns |           29 ns |
+| SQL Scan (bytes)  |          41 ns |           29 ns |
+| SQL Scan (string) |          22 ns |           15 ns |
