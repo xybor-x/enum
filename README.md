@@ -36,8 +36,7 @@ import "github.com/xybor-x/enum"
 type role any
 type Role = enum.WrapEnum[role]
 
-// Optional: NullRole is similar to sql.NullXXX structs, designed to handle 
-// nullable SQL and JSON fields.
+// NullRole is similar to sql.NullXXX structs, designed to handle nullable SQL and JSON fields.
 type NullRole = enum.Nullable[Role]
 
 const (
