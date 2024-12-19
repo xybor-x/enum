@@ -36,9 +36,6 @@ import "github.com/xybor-x/enum"
 type role any
 type Role = enum.WrapEnum[role]
 
-// NullRole is similar to sql.NullXXX structs, designed to handle nullable SQL and JSON fields.
-type NullRole = enum.Nullable[Role]
-
 const (
     RoleUser Role = iota
     RoleAdmin
@@ -85,6 +82,9 @@ import (
     "encoding/json"
     "fmt"
 )
+
+// NullRole is similar to sql.NullXXX structs, designed to handle nullable SQL and JSON fields.
+type NullRole = enum.Nullable[Role]
 
 type User struct {
     Role NullRole `json:"role"`
