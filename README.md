@@ -88,12 +88,12 @@ func main() {
     data, _ := json.Marshal(user) 
     fmt.Println(string(data)) // Output: {"role": "user"}
 
-    // Serialize a nullable role with not-null value.
+    // Serialize a nullable role with a non-null value.
     nulluser := NullUser{Role: NullRole{Enum: RoleUser, Valid: true}}
     data, _ := json.Marshal(nulluser) 
     fmt.Println(string(data)) // Output: {"role": "user"}
 
-    // Serialize a nullable role with null value.
+    // Serialize a nullable role with a null value.
     data, _ = json.Marshal(NullUser{})
     fmt.Println(string(data)) // Output: {"role": null}
 }
