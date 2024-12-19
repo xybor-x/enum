@@ -25,26 +25,16 @@
   - [Table of contents](#table-of-contents)
   - [🔧 Installation](#-installation)
   - [⚡ Quick start](#-quick-start)
-      - [Definition](#definition)
-      - [Usage](#usage)
   - [📋 Features](#-features)
   - [⭐ Basic enum](#-basic-enum)
   - [⭐ WrapEnum](#-wrapenum)
   - [⭐ SafeEnum](#-safeenum)
   - [💡 Utility functions](#-utility-functions)
-    - [FromString](#fromstring)
-    - [FromNumber](#fromnumber)
-    - [IsValid](#isvalid)
-    - [ToString](#tostring)
-    - [All](#all)
   - [🔅 Constant support](#-constant-support)
   - [🔅 Serialization and deserialization](#-serialization-and-deserialization)
   - [🔅 Nullable](#-nullable)
   - [🔅 Type safety](#-type-safety)
   - [🔅 Extensible](#-extensible)
-    - [Extend basic enum](#extend-basic-enum)
-    - [Extend WrapEnum](#extend-wrapenum)
-    - [Extend SafeEnum](#extend-safeenum)
   - [📈 Performance](#-performance)
 
 ## 🔧 Installation
@@ -63,7 +53,7 @@ go get -u github.com/xybor-x/enum
 > Enum definitions are not thread-safe.
 > Therefore, they should be finalized during initialization (at the global scope).
 
-#### Definition
+**Definition**
 
 ```go
 package main
@@ -89,7 +79,7 @@ var (
 )
 ```
 
-#### Usage
+**Usage**
 
 ```go
 package main
@@ -249,7 +239,7 @@ func main() {
 > [!NOTE]
 > All of the following functions can be used with any type of enum.
 
-### FromString
+**FromString**
 
 `FromString` returns the corresponding `enum` for a given `string` representation, and whether it is valid.
 
@@ -262,7 +252,7 @@ if ok {
 }
 ```
 
-### FromNumber
+**FromNumber**
 
 `FromNumber` returns the corresponding `enum` for a given numeric representation, and whether it is valid.
 
@@ -275,7 +265,7 @@ if ok {
 }
 ```
 
-### IsValid
+**IsValid**
 
 `IsValid` checks if an enum value is valid or not.
 
@@ -285,7 +275,7 @@ fmt.Println(enum.IsValid(Role(0)))   // true
 fmt.Println(enum.IsValid(Role(42)))  // false
 ```
 
-### ToString
+**ToString**
 
 `ToString` converts an `enum` to `string`. It returns `<nil>` for invalid enums.
 
@@ -294,7 +284,7 @@ fmt.Println(enum.ToString(RoleAdmin))  // Output: "admin"
 fmt.Println(enum.ToString(Role(42)))   // Output: "<nil>"
 ```
 
-### All
+**All**
 
 `All` returns a slice containing all enum values of a specific enum type.
 
@@ -359,7 +349,7 @@ moderator := Role("moderator") // Compile-time error
 
 ## 🔅 Extensible
 
-### Extend basic enum
+**Extend basic enum**
 
 Since this enum is just a primitive type and does not have built-in methods, you can easily extend it by directly adding additional methods.
 
@@ -384,7 +374,7 @@ func (r Role) HasPermission() bool {
 }
 ```
 
-### Extend WrapEnum
+**Extend WrapEnum**
 
 `WrapEnum` has many predefined methods. The only way to retain these methods while extending it is to wrap it as an embedded field in another struct.
 
@@ -392,7 +382,7 @@ However, this approach will break the constant-support property of the `WrapEnum
 
 You should consider extending [Basic enum](#extend-basic-enum) or [Safe enum](#extend-safeenum) instead.
 
-### Extend SafeEnum
+**Extend SafeEnum**
 
 `SafeEnum` has many predefined methods. The only way to retain these methods while extending it is to wrap it as an embedded field in another struct.
 
