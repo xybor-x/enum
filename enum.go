@@ -12,7 +12,6 @@ package enum
 
 import (
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"math"
 	"path"
@@ -35,8 +34,8 @@ type innerEnumable interface {
 
 // Map associates an enum with its numeric and string representations. If the
 // enum is a number, its value will be used as the numeric representation.
-// Otherwise, the library automatically assigns the smallest positive integer
-// number available to the enum.
+// Otherwise, the library automatically assigns the smallest non-negative
+// integer number available to the enum.
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
@@ -64,7 +63,7 @@ func Map[Enum any](enum Enum, s string) Enum {
 // New creates a dynamic enum value. The Enum type must be a number, string, or
 // supported enums (e.g WrapEnum, SafeEnum).
 //
-// The library automatically generates the smallest positive integer number
+// The library automatically generates the smallest non-negative integer number
 // available as the numeric representation of enum.
 //
 // If the enum is
@@ -227,7 +226,8 @@ func ToString[Enum any](value Enum) string {
 // ToInt returns the int representation for the given enum value. It returns the
 // smallest value of int (math.MinInt32) for invalid enums.
 //
-// DEPRECATED: It is only valid if the enum is not a floating-point number.
+// DEPRECATED: This function returns math.MinInt32 for invalid enums, which may
+// cause unexpected behavior.
 func ToInt[Enum any](enum Enum) int {
 	value, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
 	if !ok {
@@ -246,24 +246,25 @@ func IsValid[Enum any](value Enum) bool {
 
 // MarshalJSON serializes an enum value into its string representation.
 func MarshalJSON[Enum any](value Enum) ([]byte, error) {
-	if !IsValid(value) {
+	s, ok := mtmap.Get2(mtkey.EnumToJSON(value))
+	if !ok {
 		return nil, fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), value)
 	}
 
-	return json.Marshal(ToString(value))
+	return []byte(s), nil
 }
 
 // UnmarshalJSON deserializes a string representation of an enum value from
 // JSON.
-func UnmarshalJSON[Enum any](data []byte, t *Enum) error {
-	var str string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return err
+func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
+	n := len(data)
+	if n < 2 || data[0] != '"' || data[n-1] != '"' {
+		return fmt.Errorf("enum %s: invalid string %s", TrueNameOf[Enum](), string(data))
 	}
 
-	enum, ok := FromString[Enum](str)
+	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](string(data[1 : n-1])))
 	if !ok {
-		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), str)
+		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), string(data[1:n-1]))
 	}
 
 	*t = enum
@@ -272,11 +273,12 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) error {
 
 // ValueSQL serializes an enum into a database-compatible format.
 func ValueSQL[Enum any](value Enum) (driver.Value, error) {
-	if !IsValid(value) {
+	str, ok := mtmap.Get2(mtkey.Enum2String(value))
+	if !ok {
 		return nil, fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), value)
 	}
 
-	return ToString(value), nil
+	return str, nil
 }
 
 // ScanSQL deserializes a database value into an enum type.
@@ -288,16 +290,15 @@ func ScanSQL[Enum any](a any, value *Enum) error {
 	case []byte:
 		data = string(t)
 	default:
-		return fmt.Errorf("not support type %T", a)
+		return fmt.Errorf("enum %s: not support type %s", TrueNameOf[Enum](), reflect.TypeOf(a))
 	}
 
-	enum, ok := FromString[Enum](data)
+	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](data))
 	if !ok {
 		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), data)
 	}
 
 	*value = enum
-
 	return nil
 }
 
@@ -306,7 +307,7 @@ func All[Enum any]() []Enum {
 	return mtmap.Get(mtkey.AllEnums[Enum]())
 }
 
-var advancedEnumNames = []string{"WrapEnum", "SafeEnum"}
+var advancedEnumNames = []string{"WrapEnum", "WrapUintEnum", "WrapFloatEnum", "SafeEnum"}
 
 // NameOf returns the name of the enum type. In case of this is an advanced enum
 // provided by this library, this function returns the only underlying enum

@@ -33,7 +33,8 @@ func (e *WrapEnum[underlyingEnum]) Scan(a any) error {
 	return ScanSQL(a, e)
 }
 
-// Int returns the int representation of the enum.
+// Int returns the int representation of the enum. This method returns the value
+// of math.MinInt32 if the enum is invalid.
 //
 // DEPRECATED: directly cast the enum to int instead.
 func (e WrapEnum[underlyingEnum]) Int() int {

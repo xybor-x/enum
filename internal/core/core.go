@@ -2,6 +2,7 @@ package core
 
 import (
 	"math"
+	"strconv"
 
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
@@ -9,10 +10,10 @@ import (
 	"github.com/xybor-x/enum/internal/xreflect"
 )
 
-func GetAvailableEnumValue[T any]() int64 {
+func GetAvailableEnumValue[Enum any]() int64 {
 	id := int64(0)
 	for {
-		if _, ok := mtmap.Get2(mtkey.Number2Enum[int64, T](id)); !ok {
+		if _, ok := mtmap.Get2(mtkey.Number2Enum[int64, Enum](id)); !ok {
 			break
 		}
 		id++
@@ -23,7 +24,7 @@ func GetAvailableEnumValue[T any]() int64 {
 
 // MapAny map the enum value to the enum system.
 func MapAny[N xreflect.Number, Enum any](id N, enum Enum, s string) Enum {
-	if ok := mtmap.Get(mtkey.IsFinalized[Enum]()); ok {
+	if mtmap.Get(mtkey.IsFinalized[Enum]()) {
 		panic("enum is finalized")
 	}
 
@@ -39,6 +40,7 @@ func MapAny[N xreflect.Number, Enum any](id N, enum Enum, s string) Enum {
 		panic("duplicate enum is not allowed")
 	}
 
+	mtmap.Set(mtkey.EnumToJSON(enum), strconv.Quote(s))
 	mtmap.Set(mtkey.Enum2String(enum), s)
 	mtmap.Set(mtkey.String2Enum[Enum](s), enum)
 	mapEnumNumber(enum, id)
