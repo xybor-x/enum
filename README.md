@@ -108,12 +108,12 @@ While it's true that the `xybor-x/enum` approach will generally be slower than t
 
 The benchmark results are based on defining an enum with 10 values at [bench](./bench).
 
-|                   | `xybor-x/enum` | Code generation |
-| ----------------- | -------------: | --------------: |
-| ToString          |          17 ns |            6 ns |
-| FromString        |          22 ns |           15 ns |
-| json.Marshal      |         148 ns |          113 ns |
-| json.Unmarshal    |         144 ns |          147 ns |
-| SQL Value         |          38 ns |           29 ns |
-| SQL Scan (bytes)  |          41 ns |           29 ns |
-| SQL Scan (string) |          22 ns |           15 ns |
+|                   | Code generation | `xybor-x/enum` |
+| ----------------- | --------------: | -------------: |
+| ToString          |            6 ns |          17 ns |
+| FromString        |           15 ns |          22 ns |
+| json.Marshal      |          113 ns |         148 ns |
+| json.Unmarshal    |          147 ns |         144 ns |
+| SQL Value         |           29 ns |          38 ns |
+| SQL Scan (bytes)  |           29 ns |          41 ns |
+| SQL Scan (string) |           15 ns |          22 ns |
