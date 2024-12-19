@@ -26,7 +26,7 @@ go get -u github.com/xybor-x/enum
 > Enum definitions are not thread-safe.
 > Therefore, they should be finalized during initialization (at the global scope).
 
-**Definition**
+### Define
 
 ```go
 package main
@@ -52,7 +52,7 @@ var (
 )
 ```
 
-**Usage**
+### General
 
 ```go
 package main
@@ -66,10 +66,6 @@ type User struct {
     Role Role `json:"role"`
 }
 
-type NullUser struct {
-    Role NullRole `json:"role"`
-}
-
 func main() {
     // Print out the string representation of enum.
     fmt.Println(RoleAdmin) // Output: admin
@@ -78,14 +74,31 @@ func main() {
     user := User{Role: RoleUser}
     data, _ := json.Marshal(user) 
     fmt.Println(string(data)) // Output: {"role": "user"}
+}
+```
 
+### Nullable
+
+```go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+type User struct {
+    Role NullRole `json:"role"`
+}
+
+func main() {
     // Serialize a nullable role with a non-null value.
-    nulluser := NullUser{Role: NullRole{Enum: RoleUser, Valid: true}}
-    data, _ := json.Marshal(nulluser) 
+    user := User{Role: NullRole{Enum: RoleUser, Valid: true}}
+    data, _ := json.Marshal(user) 
     fmt.Println(string(data)) // Output: {"role": "user"}
 
     // Serialize a nullable role with a null value.
-    data, _ = json.Marshal(NullUser{})
+    data, _ = json.Marshal(User{})
     fmt.Println(string(data)) // Output: {"role": null}
 }
 ```
