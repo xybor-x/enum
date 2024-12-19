@@ -22,7 +22,7 @@ go get -u github.com/xybor-x/enum
 
 ## ⚡ Quick start
 
-### Define
+### Define enum
 
 > [!CAUTION]
 > Enum definitions are not thread-safe.
