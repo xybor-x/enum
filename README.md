@@ -48,7 +48,7 @@ var (
 )
 ```
 
-### General
+### Usage
 
 ```go
 package main
@@ -73,7 +73,7 @@ func main() {
 }
 ```
 
-### Nullable
+### Nullable fields
 
 ```go
 package main
