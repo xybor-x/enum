@@ -101,7 +101,7 @@ func main() {
 > [!TIP]
 > `xybor-x/enum` supports three enum types: **Basic enum** for simplicity, **Wrap enum** for enhanced functionality, and **Safe enum** for strict type safety.
 
-| *Features*                                     | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
+|                                                | Basic enum ([#][1]) | Wrap enum ([#][2]) | Safe enum ([#][3]) |
 | :--------------------------------------------- | ------------------- | ------------------ | ------------------ |
 | **Underlying type required**                   | **No**              | Yes                | Yes                |
 | **Built-in methods**                           | No                  | **Yes**            | **Yes**            |
