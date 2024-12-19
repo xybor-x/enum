@@ -83,7 +83,7 @@ import (
     "fmt"
 )
 
-// NullRole is similar to sql.NullXXX structs, designed to handle nullable SQL and JSON fields.
+// NullRole is similar to sql.NullXXX, designed to handle nullable SQL and JSON fields.
 type NullRole = enum.Nullable[Role]
 
 type User struct {
