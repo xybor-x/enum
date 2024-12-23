@@ -303,18 +303,18 @@ const (
 )
 
 func init() {
-	// Map each enum value to its string and protobuf representation.
+    // Map each enum value to its string and protobuf representation.
     enum.Map(RoleUser, "user", proto.Role_User)
     enum.Map(RoleAdmin, "admin", proto.Role_Admin)
     enum.Finalize[Role]()
 }
 
 func main() {
-	// Convert from the protobuf enum to the Role enum.
+    // Convert from the protobuf enum to the Role enum.
     role, ok := enum.From[Role](proto.Role_User)
     fmt.Println(ok, role) // Output: true RoleUser
 
-	// Convert from the Role enum to the protobuf enum.
+    // Convert from the Role enum to the protobuf enum.
     fmt.Println(enum.To[proto.Role](RoleAdmin)) // Output: proto.Role_Admin
 }
 ```
@@ -337,18 +337,18 @@ const (
 )
 
 func init() {
-	// Map each enum value to its string and protobuf representation.
+    // Map each enum value to its string and protobuf representation.
     enum.Map(RoleUser, "user", proto.Role_User)    
     enum.Map(RoleAdmin, "admin", proto.Role_Admin)
     enum.Finalize[Role]()
 }
 
 func main() {
-	// Convert from the protobuf enum to the Role enum.
+    // Convert from the protobuf enum to the Role enum.
     role, ok := enum.From[Role](proto.Role_User)
     fmt.Println(ok, role) // Output: true RoleUser
 
-	// Convert from the Role enum to the protobuf enum.
+    // Convert from the Role enum to the protobuf enum.
     fmt.Println(RoleAdmin.To()) // Output: proto.Role_Admin
 }
 ```
