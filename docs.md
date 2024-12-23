@@ -307,6 +307,11 @@ func init() {
     enum.Map(RoleUser, "user", proto.Role_User)
     enum.Map(RoleAdmin, "admin", proto.Role_Admin)
     enum.Finalize[Role]()
+
+    // Or map to only protobuf enum value (utilize protobuf enum's string and numeric representation).
+    // enum.Map(RoleUser, proto.Role_User)    
+    // enum.Map(RoleAdmin, proto.Role_Admin)
+    // enum.Finalize[Role]()
 }
 
 func main() {
@@ -341,6 +346,11 @@ func init() {
     enum.Map(RoleUser, "user", proto.Role_User)    
     enum.Map(RoleAdmin, "admin", proto.Role_Admin)
     enum.Finalize[Role]()
+
+    // Or map to only protobuf enum value (utilize protobuf enum's string and numeric representation).
+    // enum.Map(RoleUser, proto.Role_User)    
+    // enum.Map(RoleAdmin, proto.Role_Admin)
+    // enum.Finalize[Role]()
 }
 
 func main() {
