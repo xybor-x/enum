@@ -57,6 +57,8 @@ func (e WrapUintEnum[underlyingEnum]) newEnum(repr []any) any {
 	numeric := core.GetNumericRepresentation(repr)
 	if numeric == nil {
 		numeric = core.GetAvailableEnumValue[WrapUintEnum[underlyingEnum]]()
+	} else {
+		repr = core.RemoveNumericRepresentation(repr)
 	}
 
 	return core.MapAny(xreflect.Convert[WrapUintEnum[underlyingEnum]](numeric), repr)

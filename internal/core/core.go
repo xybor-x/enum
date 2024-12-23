@@ -75,16 +75,28 @@ func RemoveStringRepresentation(reprs []any) []any {
 		switch {
 		case xreflect.IsPrimitiveString(repr):
 			strReprIdx = i
-
-		default:
-			if strReprIdx == -1 {
-				if xreflect.IsImplement[fmt.Stringer](repr) {
-					strReprIdx = i
-				} else if xreflect.IsString(repr) {
-					strReprIdx = i
-				}
-			}
 		}
+	}
+
+	if strReprIdx == -1 {
+		return reprs
+	}
+
+	return append(reprs[:strReprIdx], reprs[strReprIdx+1:]...)
+}
+
+func RemoveNumericRepresentation(reprs []any) []any {
+	strReprIdx := -1
+
+	for i, repr := range reprs {
+		switch {
+		case xreflect.IsPrimitiveNumber(repr):
+			strReprIdx = i
+		}
+	}
+
+	if strReprIdx == -1 {
+		return reprs
 	}
 
 	return append(reprs[:strReprIdx], reprs[strReprIdx+1:]...)
@@ -105,6 +117,7 @@ func MapAny[Enum any](enum Enum, reprs []any) Enum {
 
 	if xreflect.IsNumber(enum) {
 		numericRepr = enum
+		hasPrimitiveNumeric = true
 	}
 
 	if xreflect.IsString(enum) {

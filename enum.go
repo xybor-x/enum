@@ -45,11 +45,8 @@ type newEnumable interface {
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
-func Map[Enum any](enum Enum, primaryRepr any, secondaryReprs ...any) Enum {
-	repr := []any{primaryRepr}
-	repr = append(repr, secondaryReprs...)
-
-	return core.MapAny(enum, repr)
+func Map[Enum any](enum Enum, reprs ...any) Enum {
+	return core.MapAny(enum, reprs)
 }
 
 // New creates a dynamic enum value then mapped to its representations. The Enum
@@ -71,10 +68,7 @@ func Map[Enum any](enum Enum, primaryRepr any, secondaryReprs ...any) Enum {
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
-func New[Enum any](primaryRepr any, secondaryReprs ...any) Enum {
-	reprs := []any{primaryRepr}
-	reprs = append(reprs, secondaryReprs...)
-
+func New[Enum any](reprs ...any) Enum {
 	switch {
 	case xreflect.IsZeroImplement[Enum, newEnumable]():
 		return xreflect.ImplementZero[Enum, newEnumable]().newEnum(reprs).(Enum)
@@ -85,7 +79,7 @@ func New[Enum any](primaryRepr any, secondaryReprs ...any) Enum {
 		if numericRepr == nil {
 			numericRepr = core.GetAvailableEnumValue[Enum]()
 		}
-		return core.MapAny(xreflect.Convert[Enum](numericRepr), reprs)
+		return core.MapAny(xreflect.Convert[Enum](numericRepr), core.RemoveNumericRepresentation(reprs))
 
 	case xreflect.IsString(xreflect.Zero[Enum]()):
 		// The string representation will be used as the the enum value.
@@ -97,7 +91,7 @@ func New[Enum any](primaryRepr any, secondaryReprs ...any) Enum {
 		return core.MapAny(xreflect.Convert[Enum](strRepr), core.RemoveStringRepresentation(reprs))
 
 	default:
-		// TODO: For the Enum type, I want to use type constraints to allow
+		// TODO: For the Enum type, I want to use type constraints to allow only
 		// numbers, strings, and innerEnumable. However, type constraints
 		// currently prevent combining unions with interfaces.
 		panic("invalid enum type: require integer, string, or innerEnumable, otherwise use Map instead!")
@@ -121,10 +115,7 @@ func New[Enum any](primaryRepr any, secondaryReprs ...any) Enum {
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
-func NewExtended[T newEnumable](primaryRepr any, secondaryReprs ...any) T {
-	reprs := []any{primaryRepr}
-	reprs = append(reprs, secondaryReprs...)
-
+func NewExtended[T newEnumable](reprs ...any) T {
 	var extendEnum T
 	extendEnumValue := reflect.ValueOf(&extendEnum).Elem()
 

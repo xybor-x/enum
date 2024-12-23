@@ -102,7 +102,7 @@ func main() {
 }
 ```
 
-### Integrate with Other Enum Systems
+### Integrate with protobuf
 
 *Refer to the [Integration Guide](./docs.md#-integrate-with-other-enum-systems) for details.*
 
@@ -122,7 +122,7 @@ const (
 ...
 ```
 
-We can integrate external enum systems like protobuf enums into `xybor-x/enum`. Here's an example:
+We can integrate the above protobuf enums into `xybor-x/enum`. Here's an example:
 
 ```go
 package main
@@ -149,10 +149,11 @@ func init() {
 func main() {
     // Convert from the protobuf enum to the Role enum.
     role, ok := enum.From[Role](proto.Role_User)
-    fmt.Println(ok, role) // Output: true RoleUser
+    // ok == true && role == RoleUser
 
     // Convert from the Role enum to the protobuf enum.
-    fmt.Println(RoleAdmin.To()) // Output: proto.Role_Admin
+    role = RoleAdmin.To()
+    // role == proto.Role_Admin
 }
 ```
 
