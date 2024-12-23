@@ -140,7 +140,7 @@ const (
 )
 
 func init() {
-    // Map each enum value to its string and protobuf representation.
+    // Map the enum to protobuf enum value (utilize protobuf enum's string and numeric representation).
     enum.Map(RoleUser, proto.Role_User)    
     enum.Map(RoleAdmin, proto.Role_Admin)
     enum.Finalize[Role]()
