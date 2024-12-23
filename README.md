@@ -152,11 +152,11 @@ func init() {
 }
 
 func main() {
-	// Convert from the protobuf enum to the Role enum.
+    // Convert from the protobuf enum to the Role enum.
     role, ok := enum.From[Role](proto.Role_User)
     fmt.Println(ok, role) // Output: true RoleUser
 
-	// Convert from the Role enum to the protobuf enum.
+    // Convert from the Role enum to the protobuf enum.
     fmt.Println(RoleAdmin.To()) // Output: proto.Role_Admin
 }
 ```
