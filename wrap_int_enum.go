@@ -7,7 +7,10 @@ import (
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
+	"github.com/xybor-x/enum/internal/xreflect"
 )
+
+var _ newEnumable = (WrapEnum[int](0))
 
 // WrapEnum provides a set of built-in methods to simplify working with int
 // enums.
@@ -41,6 +44,11 @@ func (e WrapEnum[underlyingEnum]) Int() int {
 	return mtmap.Get(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
 }
 
+// To returns the underlying representation of this enum.
+func (e WrapEnum[underlyingEnum]) To() underlyingEnum {
+	return To[underlyingEnum](e)
+}
+
 func (e WrapEnum[underlyingEnum]) String() string {
 	return ToString(e)
 }
@@ -55,6 +63,11 @@ func (e WrapEnum[underlyingEnum]) GoString() string {
 
 // WARNING: Only use this function if you fully understand its behavior.
 // It might cause unexpected results if used improperly.
-func (e WrapEnum[underlyingEnum]) newEnum(id int64, s string) any {
-	return core.MapAny(id, WrapEnum[underlyingEnum](id), s)
+func (e WrapEnum[underlyingEnum]) newEnum(repr []any) any {
+	numeric := core.GetNumericRepresentation(repr)
+	if numeric == nil {
+		numeric = core.GetAvailableEnumValue[WrapEnum[underlyingEnum]]()
+	}
+
+	return core.MapAny(xreflect.Convert[WrapEnum[underlyingEnum]](numeric), repr)
 }

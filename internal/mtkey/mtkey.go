@@ -1,6 +1,10 @@
 package mtkey
 
-import "github.com/xybor-x/enum/internal/xreflect"
+import (
+	"reflect"
+
+	"github.com/xybor-x/enum/internal/xreflect"
+)
 
 type enum2String[T any] struct{ key T }
 
@@ -31,6 +35,10 @@ type number2Enum[T any] struct{ key any }
 func (number2Enum[T]) InferValue() T { panic("not implemented") }
 
 func Number2Enum[N xreflect.Number, T any](key N) number2Enum[T] {
+	return number2Enum[T]{key: key}
+}
+
+func AnyNumber2Enum[T any](key any) number2Enum[T] {
 	return number2Enum[T]{key: key}
 }
 
@@ -66,10 +74,33 @@ func TrueNameOf[T any]() trueNameOf[T] {
 	return trueNameOf[T]{}
 }
 
-type enumToJSON[T any] struct{ key T }
+type enum2JSON[T any] struct{ key T }
 
-func (enumToJSON[T]) InferValue() string { panic("not implemented") }
+func (enum2JSON[T]) InferValue() string { panic("not implemented") }
 
-func EnumToJSON[T any](key T) enumToJSON[T] {
-	return enumToJSON[T]{key: key}
+func Enum2JSON[T any](key T) enum2JSON[T] {
+	return enum2JSON[T]{key: key}
+}
+
+type enum2Extra[T any] struct {
+	key T
+	typ reflect.Type
+}
+
+func (enum2Extra[T]) InferValue() any { panic("not implemented") }
+
+func Enum2Extra[T, P any](key T) enum2Extra[T] {
+	return enum2Extra[T]{key: key, typ: reflect.TypeOf(xreflect.Zero[P]())}
+}
+
+func Enum2ExtraWith[T any](key T, extra any) enum2Extra[T] {
+	return enum2Extra[T]{key: key, typ: reflect.TypeOf(extra)}
+}
+
+type extra2Enum[T any] struct{ key any }
+
+func (extra2Enum[T]) InferValue() T { panic("not implemented") }
+
+func Extra2Enum[T any](key any) extra2Enum[T] {
+	return extra2Enum[T]{key: key}
 }

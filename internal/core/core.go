@@ -1,7 +1,9 @@
 package core
 
 import (
+	"fmt"
 	"math"
+	"reflect"
 	"strconv"
 
 	"github.com/xybor-x/enum/internal/mtkey"
@@ -22,28 +24,168 @@ func GetAvailableEnumValue[Enum any]() int64 {
 	return id
 }
 
-// MapAny map the enum value to the enum system.
-func MapAny[N xreflect.Number, Enum any](id N, enum Enum, s string) Enum {
+func GetNumericRepresentation(reprs []any) any {
+	var numericRepr any
+
+	for _, repr := range reprs {
+		switch {
+		case xreflect.IsPrimitiveNumber(repr):
+			numericRepr = repr
+
+		default:
+			if numericRepr == nil && xreflect.IsNumber(repr) {
+				numericRepr = repr
+			}
+		}
+	}
+
+	return numericRepr
+}
+
+func GetStringRepresentation(reprs []any) (string, bool) {
+	var strRepr string
+	var hasStrRepr bool
+
+	for _, repr := range reprs {
+		switch {
+		case xreflect.IsPrimitiveString(repr):
+			strRepr = xreflect.Convert[string](repr)
+			hasStrRepr = true
+
+		default:
+			if !hasStrRepr {
+				if xreflect.IsImplement[fmt.Stringer](repr) {
+					strRepr = repr.(fmt.Stringer).String()
+					hasStrRepr = true
+				} else if xreflect.IsString(repr) {
+					strRepr = xreflect.Convert[string](repr)
+					hasStrRepr = true
+				}
+			}
+		}
+	}
+
+	return strRepr, hasStrRepr
+}
+
+func RemoveStringRepresentation(reprs []any) []any {
+	strReprIdx := -1
+
+	for i, repr := range reprs {
+		switch {
+		case xreflect.IsPrimitiveString(repr):
+			strReprIdx = i
+
+		default:
+			if strReprIdx == -1 {
+				if xreflect.IsImplement[fmt.Stringer](repr) {
+					strReprIdx = i
+				} else if xreflect.IsString(repr) {
+					strReprIdx = i
+				}
+			}
+		}
+	}
+
+	return append(reprs[:strReprIdx], reprs[strReprIdx+1:]...)
+}
+
+// MapAny maps the enum value to its representations.
+func MapAny[Enum any](enum Enum, reprs []any) Enum {
 	if mtmap.Get(mtkey.IsFinalized[Enum]()) {
 		panic("enum is finalized")
 	}
 
-	if _, ok := mtmap.Get2(mtkey.Number2Enum[N, Enum](id)); ok {
-		panic("duplicate enum number is not allowed")
+	var strRepr string
+	var hasStrRepr bool
+	var hasPrimitiveStr bool
+
+	var numericRepr any
+	var hasPrimitiveNumeric bool
+
+	if xreflect.IsNumber(enum) {
+		numericRepr = enum
 	}
 
-	if _, ok := mtmap.Get2(mtkey.String2Enum[Enum](s)); ok {
-		panic("duplicate enum string is not allowed")
+	if xreflect.IsString(enum) {
+		strRepr = xreflect.Convert[string](enum)
+		hasStrRepr = true
+		hasPrimitiveStr = true
 	}
 
-	if _, ok := mtmap.Get2(mtkey.Enum2Number[Enum, N](enum)); ok {
-		panic("duplicate enum is not allowed")
+	for _, repr := range reprs {
+		switch {
+		case xreflect.IsPrimitiveNumber(repr):
+			if hasPrimitiveNumeric {
+				panic(fmt.Sprintf("enum %s (%v): multiple primitive numerics are provided (%v, %v)",
+					reflect.TypeOf(enum).Name(), enum, numericRepr, repr))
+			}
+
+			numericRepr = repr
+			hasPrimitiveNumeric = true
+
+		case xreflect.IsPrimitiveString(repr):
+			if hasPrimitiveStr {
+				panic(fmt.Sprintf("enum %s (%v): multiple primitive strings are provided (%v, %v)",
+					reflect.TypeOf(enum).Name(), enum, strRepr, repr))
+			}
+
+			strRepr = xreflect.Convert[string](repr)
+			hasStrRepr = true
+			hasPrimitiveStr = true
+
+		default:
+			if v, ok := mtmap.Get2(mtkey.Extra2Enum[Enum](repr)); ok {
+				panic(fmt.Sprintf("enum %s (%v): representation %v was already mapped to %v",
+					reflect.TypeOf(enum).Name(), enum, repr, v))
+			}
+
+			if _, ok := mtmap.Get2(mtkey.Enum2ExtraWith(enum, repr)); ok {
+				panic(fmt.Sprintf("enum %s (%v): do not map type %s twice",
+					reflect.TypeOf(enum).Name(), enum, reflect.TypeOf(repr).Name()))
+			}
+
+			if !hasStrRepr {
+				if xreflect.IsImplement[fmt.Stringer](repr) {
+					strRepr = repr.(fmt.Stringer).String()
+					hasStrRepr = true
+				} else if xreflect.IsString(repr) {
+					strRepr = xreflect.Convert[string](repr)
+					hasStrRepr = true
+				}
+			}
+
+			if numericRepr == nil && xreflect.IsNumber(repr) {
+				numericRepr = repr
+			}
+
+			mtmap.Set(mtkey.Enum2ExtraWith(enum, repr), repr)
+			mtmap.Set(mtkey.Extra2Enum[Enum](repr), enum)
+		}
 	}
 
-	mtmap.Set(mtkey.EnumToJSON(enum), strconv.Quote(s))
-	mtmap.Set(mtkey.Enum2String(enum), s)
-	mtmap.Set(mtkey.String2Enum[Enum](s), enum)
-	mapEnumNumber(enum, id)
+	if !hasStrRepr {
+		panic(fmt.Sprintf("enum %s (%v): not found any string representation", reflect.TypeOf(enum).Name(), enum))
+	}
+
+	if numericRepr == nil {
+		numericRepr = GetAvailableEnumValue[Enum]()
+	}
+
+	mapEnumNumber(enum, numericRepr)
+
+	if v, ok := mtmap.Get2(mtkey.String2Enum[Enum](strRepr)); ok {
+		panic(fmt.Sprintf("enum %s (%v): string %s was already mapped to %v",
+			reflect.TypeOf(enum).Name(), enum, strRepr, v))
+	}
+
+	if _, ok := mtmap.Get2(mtkey.Enum2String(enum)); ok {
+		panic(fmt.Sprintf("enum %s (%v): do not map string twice", reflect.TypeOf(enum).Name(), enum))
+	}
+
+	mtmap.Set(mtkey.Enum2JSON(enum), strconv.Quote(strRepr))
+	mtmap.Set(mtkey.Enum2String(enum), strRepr)
+	mtmap.Set(mtkey.String2Enum[Enum](strRepr), enum)
 
 	allVals := mtmap.Get(mtkey.AllEnums[Enum]())
 	allVals = append(allVals, enum)
@@ -54,16 +196,30 @@ func MapAny[N xreflect.Number, Enum any](id N, enum Enum, s string) Enum {
 
 // mapEnumNumber maps the enum to all its number representations (including
 // signed and unsigned integers, floating-point numbers) and vice versa.
-func mapEnumNumber[Enum any, N xreflect.Number](enum Enum, n N) {
+func mapEnumNumber[Enum any](enum Enum, n any) {
+	if !xreflect.IsNumber(n) {
+		panic(fmt.Sprintf("require a number, got %v", n))
+	}
+
+	if v, ok := mtmap.Get2(mtkey.AnyNumber2Enum[Enum](n)); ok {
+		panic(fmt.Sprintf("enum %s (%v): number %v was already mapped to %v",
+			reflect.TypeOf(enum).Name(), enum, n, v))
+	}
+
+	// The mapping to float32 always exists in all cases.
+	if _, ok := mtmap.Get2(mtkey.Enum2Number[Enum, float32](enum)); ok {
+		panic(fmt.Sprintf("enum %s (%v): do not map number twice", reflect.TypeOf(enum).Name(), enum))
+	}
+
 	// Only map the enum to integers if the enum is represented by integer
 	// values, where the integer corresponds to the actual numeric value,
 	// regardless of the underlying type.
 	//
 	// For example: float32(3) is also an integer, whereas float32(0.7) is not.
 	mapInteger := true
-	if xreflect.IsFloat32[N]() {
+	if xreflect.IsFloat32(n) {
 		mapInteger = xreflect.Convert[float32](n) == xmath.Trunc32(xreflect.Convert[float32](n))
-	} else if xreflect.IsFloat64[N]() {
+	} else if xreflect.IsFloat64(n) {
 		mapInteger = xreflect.Convert[float64](n) == math.Trunc(xreflect.Convert[float64](n))
 	}
 
