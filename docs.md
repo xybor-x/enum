@@ -336,29 +336,10 @@ import (
 
 type Role = enum.WrapEnum[proto.Role]
 
-const (
-    RoleUser Role = iota
-    RoleAdmin
-)
-
-func init() {
-    // Map each enum value to its string and protobuf representation.
-    enum.Map(RoleUser, "user", proto.Role_User)    
-    enum.Map(RoleAdmin, "admin", proto.Role_Admin)
-    enum.Finalize[Role]()
-
-    // Or map to only protobuf enum value (utilize protobuf enum's string and numeric representation).
-    // enum.Map(RoleUser, proto.Role_User)    
-    // enum.Map(RoleAdmin, proto.Role_Admin)
-    // enum.Finalize[Role]()
-}
+...
 
 func main() {
-    // Convert from the protobuf enum to the Role enum.
-    role, ok := enum.From[Role](proto.Role_User)
-    fmt.Println(ok, role) // Output: true RoleUser
-
-    // Convert from the Role enum to the protobuf enum.
+    // Convert from the Role enum to the protobuf enum with the built-in method.
     fmt.Println(RoleAdmin.To()) // Output: proto.Role_Admin
 }
 ```
