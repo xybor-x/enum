@@ -107,7 +107,7 @@ func RemoveNumericRepresentation(reprs []any) []any {
 // MapAny maps the enum value to its representations.
 func MapAny[Enum any](enum Enum, reprs []any) Enum {
 	if mtmap.Get(mtkey.IsFinalized[Enum]()) {
-		panic(fmt.Sprintf("enum %s: the enum is already finalized", TrueNameOf[Enum]()))
+		panic(fmt.Sprintf("enum %s: the enum was already finalized", TrueNameOf[Enum]()))
 	}
 
 	var strRepr string
