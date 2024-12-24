@@ -229,7 +229,7 @@ func ToString[Enum any](value Enum) string {
 // smallest value of int (math.MinInt32) for invalid enums.
 //
 // DEPRECATED: This function returns math.MinInt32 for invalid enums, which may
-// cause unexpected behavior. Use To() or To2() instead.
+// cause unexpected behavior. Use To() or MustTo() instead.
 func ToInt[Enum any](enum Enum) int {
 	value, ok := To[int](enum)
 	if !ok {
