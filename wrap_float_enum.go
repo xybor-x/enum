@@ -8,7 +8,8 @@ import (
 	"github.com/xybor-x/enum/internal/xreflect"
 )
 
-var _ newEnumable = (WrapFloatEnum[int](0))
+var _ newableEnum = WrapFloatEnum[int](0)
+var _ hookAfterEnum = WrapFloatEnum[int](0)
 
 // WrapFloatEnum provides a set of built-in methods to simplify working with
 // float64 enums.
@@ -36,7 +37,7 @@ func (e *WrapFloatEnum[underlyingEnum]) Scan(a any) error {
 
 // To returns the underlying representation of this enum.
 func (e WrapFloatEnum[underlyingEnum]) To() underlyingEnum {
-	return To[underlyingEnum](e)
+	return MustTo[underlyingEnum](e)
 }
 
 func (e WrapFloatEnum[underlyingEnum]) String() string {
@@ -62,4 +63,10 @@ func (e WrapFloatEnum[underlyingEnum]) newEnum(repr []any) any {
 	}
 
 	return core.MapAny(xreflect.Convert[WrapFloatEnum[underlyingEnum]](numeric), repr)
+}
+
+// WARNING: Only use this function if you fully understand its behavior.
+// It might cause unexpected results if used improperly.
+func (e WrapFloatEnum[underlyingEnum]) hookAfter() {
+	mustHaveUnderlyingRepr[underlyingEnum](e)
 }

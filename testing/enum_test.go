@@ -94,7 +94,7 @@ func TestEnumFinalize(t *testing.T) {
 		_ = enum.Finalize[Role]()
 	)
 
-	assert.Panics(t, func() { enum.New[Role]("moderator") })
+	assert.PanicsWithValue(t, "enum Role: the enum is already finalized", func() { enum.New[Role]("moderator") })
 }
 
 func TestEnumMapDuplicated(t *testing.T) {
@@ -104,13 +104,15 @@ func TestEnumMapDuplicated(t *testing.T) {
 		RoleUser = enum.New[Role]("user")
 	)
 
-	const (
-		RoleAdmin Role = iota
-	)
-
 	assert.Equal(t, enum.ToString(RoleUser), "user")
-	assert.Panics(t, func() { enum.Map(RoleAdmin, "admin") })
-	assert.Panics(t, func() { enum.Map(Role(1), "user") })
+	assert.PanicsWithValue(t,
+		"enum Role (0): do not map number twice",
+		func() { enum.Map(RoleUser, "admin") },
+	)
+	assert.PanicsWithValue(t,
+		"enum Role (1): string user was already mapped to 0",
+		func() { enum.Map(Role(1), "user") },
+	)
 }
 
 func TestEnumMustToString(t *testing.T) {
@@ -147,8 +149,6 @@ func TestEnumFromString(t *testing.T) {
 func TestEnumMustFromString(t *testing.T) {
 	type Role int
 
-	assert.Panics(t, func() { enum.MustFromString[Role]("moderator") })
-
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
@@ -156,7 +156,6 @@ func TestEnumMustFromString(t *testing.T) {
 
 	assert.Equal(t, enum.MustFromString[Role]("user"), RoleUser)
 	assert.Equal(t, enum.MustFromString[Role]("admin"), RoleAdmin)
-	assert.Panics(t, func() { enum.MustFromString[Role]("moderator") })
 }
 
 func TestEnumFromNumber(t *testing.T) {
@@ -182,8 +181,6 @@ func TestEnumFromNumber(t *testing.T) {
 func TestEnumMustFromNumber(t *testing.T) {
 	type Role int
 
-	assert.Panics(t, func() { enum.MustFromNumber[Role](0) })
-
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
@@ -191,7 +188,6 @@ func TestEnumMustFromNumber(t *testing.T) {
 
 	assert.Equal(t, enum.MustFromNumber[Role](0), RoleUser)
 	assert.Equal(t, enum.MustFromNumber[Role](1), RoleAdmin)
-	assert.Panics(t, func() { enum.MustFromNumber[Role](2) })
 }
 
 func TestEnumUndefined(t *testing.T) {

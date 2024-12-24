@@ -14,9 +14,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
-	"path"
 	"reflect"
-	"strings"
 
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/mtkey"
@@ -24,40 +22,41 @@ import (
 	"github.com/xybor-x/enum/internal/xreflect"
 )
 
-// newEnumable is an internal interface used for handling centralized
+// newableEnum is an internal interface used for handling centralized
 // initialization via New function.
-type newEnumable interface {
+type newableEnum interface {
 	// newEnum creates a dynamic enum value of the current type and map it into
 	// the enum system.
-	newEnum(representations []any) any
+	newEnum(reprs []any) any
 }
 
-// Map associates an enum with its representations. Avoid mapping multiple
-// representations of the same type to a single enum.
-//
-// A string representation is required. If not provided, the first Stringer is
-// used.
-//
-// For numeric types, only one explicit value is allowed, and others are derived
-// from it. Primitive types take priority. If no numeric value is provided:
-//   - Numeric enums use their value.
-//   - Non-numeric enums get the smallest available non-negative integer.
+// hookAfterEnum calls hookAfter() method after the enum is created.
+type hookAfterEnum interface {
+	hookAfter()
+}
+
+// Map associates an enum with its representations under strict rules:
+//   - String enums map to themselves as the string representation; Stringer is
+//     also treated as a string representation if no string repr is found.
+//   - Numeric enums map to themselves as the numeric representation; all
+//     primitive numeric types (ints, uints, floats) are treated as a single
+//     type.
+//   - An enum cannot be mapped to multiple representations of the same type.
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
 func Map[Enum any](enum Enum, reprs ...any) Enum {
+	defer func() {
+		if hook, ok := any(enum).(hookAfterEnum); ok {
+			hook.hookAfter()
+		}
+	}()
+
 	return core.MapAny(enum, reprs)
 }
 
 // New creates a dynamic enum value then mapped to its representations. The Enum
 // type must be a number, string, or supported enums (e.g WrapEnum, SafeEnum).
-//
-// A string representation is required. If not provided, the first Stringer is
-// used.
-//
-// For numeric types, only one explicit value is allowed, and others are derived
-// from it. Primitive types take priority. If no numeric value is provided, the
-// smallest available non-negative integer will be used.
 //
 // If the enum is
 //   - Supported enum: the inner new function will be called to generate the
@@ -68,10 +67,16 @@ func Map[Enum any](enum Enum, reprs ...any) Enum {
 //
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
-func New[Enum any](reprs ...any) Enum {
+func New[Enum any](reprs ...any) (enum Enum) {
+	defer func() {
+		if hook, ok := any(enum).(hookAfterEnum); ok {
+			hook.hookAfter()
+		}
+	}()
+
 	switch {
-	case xreflect.IsZeroImplement[Enum, newEnumable]():
-		return xreflect.ImplementZero[Enum, newEnumable]().newEnum(reprs).(Enum)
+	case xreflect.IsZeroImplement[Enum, newableEnum]():
+		return xreflect.ImplementZero[Enum, newableEnum]().newEnum(reprs).(Enum)
 
 	case xreflect.IsNumber(xreflect.Zero[Enum]()):
 		// The numeric representation will be used as the the enum value.
@@ -79,6 +84,7 @@ func New[Enum any](reprs ...any) Enum {
 		if numericRepr == nil {
 			numericRepr = core.GetAvailableEnumValue[Enum]()
 		}
+
 		return core.MapAny(xreflect.Convert[Enum](numericRepr), core.RemoveNumericRepresentation(reprs))
 
 	case xreflect.IsString(xreflect.Zero[Enum]()):
@@ -98,7 +104,7 @@ func New[Enum any](reprs ...any) Enum {
 	}
 }
 
-// NewExtended initializes an extended enum.
+// NewExtended initializes an extended enum then mapped to its representations.
 //
 // An extended enum follows this structure (the embedded Enum must be an
 // anonymous field to inherit its built-in methods):
@@ -106,16 +112,15 @@ func New[Enum any](reprs ...any) Enum {
 //	type role any
 //	type Role struct { enum.SafeEnum[role] }
 //
-// A string representation is required. If not provided, the first Stringer is
-// used.
-//
-// For numeric types, only one explicit value is allowed, and others are derived
-// from it. Primitive types take priority. If no numeric value is provided, the
-// smallest available non-negative integer will be used.
-//
 // Note that this function is not thread-safe and should only be called during
 // initialization or other safe execution points to avoid race conditions.
-func NewExtended[T newEnumable](reprs ...any) T {
+func NewExtended[T newableEnum](reprs ...any) (enum T) {
+	defer func() {
+		if hook, ok := any(enum).(hookAfterEnum); ok {
+			hook.hookAfter()
+		}
+	}()
+
 	var extendEnum T
 	extendEnumValue := reflect.ValueOf(&extendEnum).Elem()
 
@@ -129,7 +134,7 @@ func NewExtended[T newEnumable](reprs ...any) T {
 		}
 
 		// Ignore non-enumable fields.
-		if !fieldType.Type.Implements(reflect.TypeOf((*newEnumable)(nil)).Elem()) {
+		if !fieldType.Type.Implements(reflect.TypeOf((*newableEnum)(nil)).Elem()) {
 			continue
 		}
 
@@ -139,7 +144,7 @@ func NewExtended[T newEnumable](reprs ...any) T {
 
 		// Set value to the embedded enumable field.
 		enumField := extendEnumValue.FieldByName(fieldType.Name)
-		enumField.Set(reflect.ValueOf(enumField.Interface().(newEnumable).newEnum(reprs)))
+		enumField.Set(reflect.ValueOf(enumField.Interface().(newableEnum).newEnum(reprs)))
 
 		// The newEnum method mapped the enum value to the system (see the
 		// description of the newEnum method). Why is MapAny called again here?
@@ -165,65 +170,54 @@ func Finalize[Enum any]() bool {
 //
 // DEPRECATED: Use FromNumber instead.
 func FromInt[Enum any](i int) (Enum, bool) {
-	return mtmap.Get2(mtkey.Number2Enum[int, Enum](i))
+	return FromNumber[Enum](i)
 }
 
 // FromNumber returns the corresponding enum for a given number representation,
 // and whether it is valid.
 func FromNumber[Enum any, N xreflect.Number](n N) (Enum, bool) {
-	return mtmap.Get2(mtkey.Number2Enum[N, Enum](n))
+	return From[Enum](n)
 }
 
 // MustFromInt returns the corresponding enum for a given int representation.
 //
-// It panics if the enum value is invalid.
+// It returns zero value if the enum value is invalid.
 //
 // DEPRECATED: Use MustFromNumber instead.
 func MustFromInt[Enum any](i int) Enum {
-	t, ok := FromInt[Enum](i)
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid int %d", TrueNameOf[Enum](), i))
-	}
-
+	t, _ := FromInt[Enum](i)
 	return t
 }
 
 // MustFromNumber returns the corresponding enum for a given number
 // representation.
 //
-// It panics if the enum value is invalid.
+// It returns the zero value if the enum value is invalid.
 func MustFromNumber[Enum any, N xreflect.Number](n N) Enum {
-	t, ok := FromNumber[Enum](n)
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid number %v", TrueNameOf[Enum](), n))
-	}
-
+	t, _ := FromNumber[Enum](n)
 	return t
 }
 
 // FromString returns the corresponding enum for a given string representation,
 // and whether it is valid.
 func FromString[Enum any](s string) (Enum, bool) {
-	return mtmap.Get2(mtkey.String2Enum[Enum](s))
+	return From[Enum](s)
 }
 
 // MustFromString returns the corresponding enum for a given string
 // representation.
 //
-// It panics if the string does not correspond to a valid enum value.
+// It returns zero value if the string does not correspond to a valid enum
+// value.
 func MustFromString[Enum any](s string) Enum {
-	enum, ok := FromString[Enum](s)
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid string %s", TrueNameOf[Enum](), s))
-	}
-
+	enum, _ := FromString[Enum](s)
 	return enum
 }
 
 // ToString returns the string representation of the given enum value. It
 // returns <nil> for invalid enums.
 func ToString[Enum any](value Enum) string {
-	str, ok := mtmap.Get2(mtkey.Enum2String(value))
+	str, ok := To[string](value)
 	if !ok {
 		return "<nil>"
 	}
@@ -235,9 +229,9 @@ func ToString[Enum any](value Enum) string {
 // smallest value of int (math.MinInt32) for invalid enums.
 //
 // DEPRECATED: This function returns math.MinInt32 for invalid enums, which may
-// cause unexpected behavior.
+// cause unexpected behavior. Use To() or To2() instead.
 func ToInt[Enum any](enum Enum) int {
-	value, ok := mtmap.Get2(mtkey.Enum2Number[Enum, int](enum))
+	value, ok := To[int](enum)
 	if !ok {
 		return math.MinInt32
 	}
@@ -248,62 +242,39 @@ func ToInt[Enum any](enum Enum) int {
 // From returns the corresponding enum for a given representation, and whether
 // it is valid.
 func From[Enum any, P any](a P) (Enum, bool) {
-	if xreflect.IsZeroImplement[P, string]() {
-		return FromString[Enum](any(a).(string))
-	}
-
-	return mtmap.Get2(mtkey.Extra2Enum[Enum](a))
+	return mtmap.Get2(mtkey.Repr2Enum[Enum](a))
 }
 
-// MustFrom returns the corresponding enum for a given representation. It panics
-// if the representation is invalid.
+// MustFrom returns the corresponding enum for a given representation. It
+// returns the zero value of enum in case the representation is unknown.
 func MustFrom[Enum any, P any](a P) Enum {
-	if xreflect.IsZeroImplement[P, string]() {
-		return MustFromString[Enum](any(a).(string))
-	}
-
-	e, ok := mtmap.Get2(mtkey.Extra2Enum[Enum](a))
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid representations %v", TrueNameOf[Enum](), a))
-	}
-
+	e, _ := mtmap.Get2(mtkey.Repr2Enum[Enum](a))
 	return e
 }
 
 // To returns the representation (the type is relied on P type parameter) for
-// the given enum value. It returns the zero value if the enum is invalid.
-func To[P, Enum any](enum Enum) P {
-	if xreflect.IsZeroImplement[P, string]() {
-		return any(ToString(enum)).(P)
+// the given enum value. The latter returned value is false if the enum is
+// invalid or the enum doesn't have any representation of type P.
+func To[P, Enum any](enum Enum) (P, bool) {
+	ret, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, P](enum))
+	if !ok {
+		return xreflect.Zero[P](), false
 	}
 
-	return mtmap.Get(mtkey.Enum2Extra[Enum, P](enum)).(P)
+	return ret.(P), true
 }
 
 // MustTo returns the representation (the type is relied on P type parameter)
-// for the given enum value. It panics if the enum is invalid.
+// for the given enum value. It returns zero value if the enum is invalid.
 func MustTo[P, Enum any](enum Enum) P {
-	if xreflect.IsZeroImplement[P, string]() {
-		str, ok := mtmap.Get2(mtkey.Enum2String(enum))
-		if !ok {
-			panic(fmt.Sprintf("enum %s: invalid value %#v", TrueNameOf[Enum](), enum))
-		}
-
-		return any(str).(P)
-	}
-
-	p, ok := mtmap.Get2(mtkey.Enum2Extra[Enum, P](enum))
-	if !ok {
-		panic(fmt.Sprintf("enum %s: invalid value %#v", TrueNameOf[Enum](), enum))
-	}
-
-	return p.(P)
+	val, _ := To[P](enum)
+	return val
 }
 
 // IsValid checks if an enum value is valid.
 // It returns true if the enum value is valid, and false otherwise.
 func IsValid[Enum any](value Enum) bool {
-	_, ok := mtmap.Get2(mtkey.Enum2String(value))
+	_, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](value))
 	return ok
 }
 
@@ -325,7 +296,7 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 		return fmt.Errorf("enum %s: invalid string %s", TrueNameOf[Enum](), string(data))
 	}
 
-	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](string(data[1 : n-1])))
+	enum, ok := mtmap.Get2(mtkey.Repr2Enum[Enum](string(data[1 : n-1])))
 	if !ok {
 		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), string(data[1:n-1]))
 	}
@@ -336,7 +307,7 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 
 // ValueSQL serializes an enum into a database-compatible format.
 func ValueSQL[Enum any](value Enum) (driver.Value, error) {
-	str, ok := mtmap.Get2(mtkey.Enum2String(value))
+	str, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](value))
 	if !ok {
 		return nil, fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), value)
 	}
@@ -356,7 +327,7 @@ func ScanSQL[Enum any](a any, value *Enum) error {
 		return fmt.Errorf("enum %s: not support type %s", TrueNameOf[Enum](), reflect.TypeOf(a))
 	}
 
-	enum, ok := mtmap.Get2(mtkey.String2Enum[Enum](data))
+	enum, ok := mtmap.Get2(mtkey.Repr2Enum[Enum](data))
 	if !ok {
 		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), data)
 	}
@@ -370,8 +341,6 @@ func All[Enum any]() []Enum {
 	return mtmap.Get(mtkey.AllEnums[Enum]())
 }
 
-var advancedEnumNames = []string{"WrapEnum", "WrapUintEnum", "WrapFloatEnum", "SafeEnum"}
-
 // NameOf returns the name of the enum type. In case of this is an advanced enum
 // provided by this library, this function returns the only underlying enum
 // name, which differs from TrueNameOf.
@@ -381,20 +350,7 @@ var advancedEnumNames = []string{"WrapEnum", "WrapUintEnum", "WrapFloatEnum", "S
 //	NameOf[Role]()           = "Role"
 //	NameOf[WrapEnum[role]]() = "Role"
 func NameOf[T any]() string {
-	if name, ok := mtmap.Get2(mtkey.NameOf[T]()); ok {
-		return name
-	}
-
-	name := reflect.TypeOf((*T)(nil)).Elem().Name()
-	for _, prefix := range advancedEnumNames {
-		if strings.HasPrefix(name, prefix) {
-			name = capitalizeFirst(getUnderlyingName(name, prefix))
-			break
-		}
-	}
-
-	mtmap.Set(mtkey.NameOf[T](), name)
-	return name
+	return core.NameOf[T]()
 }
 
 // TrueNameOf returns the name of the enum type. In case of this is an advanced
@@ -406,37 +362,23 @@ func NameOf[T any]() string {
 //	TrueNameOf[Role]()           = "Role"
 //	TrueNameOf[WrapEnum[role]]() = "WrapEnum[role]"
 func TrueNameOf[T any]() string {
-	if name, ok := mtmap.Get2(mtkey.TrueNameOf[T]()); ok {
-		return name
-	}
-
-	name := reflect.TypeOf((*T)(nil)).Elem().Name()
-	for _, prefix := range advancedEnumNames {
-		if strings.HasPrefix(name, prefix) {
-			name = fmt.Sprintf("%s[%s]", prefix, getUnderlyingName(name, prefix))
-			break
-		}
-	}
-
-	mtmap.Set(mtkey.TrueNameOf[T](), name)
-	return name
+	return core.TrueNameOf[T]()
 }
 
-func getUnderlyingName(name, prefix string) string {
-	// name = prefix[path/to/module.underlying·id]
-	inner := name[len(prefix)+1 : len(name)-1] // inner = path/to/module.underlying·id
-	_, inner = path.Split(inner)               // inner = module.underlying·id
-
-	parts := strings.Split(inner, ".")
-	inner = parts[len(parts)-1] // inner = underlying·id
-
-	parts = strings.Split(inner, string(rune(183))) // middle dot character.
-	return parts[0]                                 // parts[0] = underlying
-}
-
-func capitalizeFirst(s string) string {
-	if len(s) == 0 {
-		return s // Return empty string if input is empty
+// mustHaveUnderlyingRepr ensures an enum has a representation of its underlying
+// type. It ignores cases where the underlying type is unexported and does not
+// define any methods, OR the enum is not defined successfully.
+func mustHaveUnderlyingRepr[underlyingEnum any, Enum any](e Enum) {
+	if reflect.TypeOf((*underlyingEnum)(nil)).Elem().NumMethod() == 0 && !xreflect.IsExported[underlyingEnum]() {
+		return
 	}
-	return strings.ToUpper(string(s[0])) + s[1:]
+
+	if !IsValid(e) {
+		return
+	}
+
+	if _, ok := To[underlyingEnum](e); !ok {
+		panic(fmt.Sprintf("enum %s (%#v): require a representation of %T",
+			TrueNameOf[Enum](), e, xreflect.Zero[underlyingEnum]()))
+	}
 }

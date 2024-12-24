@@ -5,12 +5,11 @@ import (
 	"fmt"
 
 	"github.com/xybor-x/enum/internal/core"
-	"github.com/xybor-x/enum/internal/mtkey"
-	"github.com/xybor-x/enum/internal/mtmap"
 	"github.com/xybor-x/enum/internal/xreflect"
 )
 
-var _ newEnumable = (WrapEnum[int](0))
+var _ newableEnum = WrapEnum[int](0)
+var _ hookAfterEnum = WrapEnum[int](0)
 
 // WrapEnum provides a set of built-in methods to simplify working with int
 // enums.
@@ -41,12 +40,12 @@ func (e *WrapEnum[underlyingEnum]) Scan(a any) error {
 //
 // DEPRECATED: directly cast the enum to int instead.
 func (e WrapEnum[underlyingEnum]) Int() int {
-	return mtmap.Get(mtkey.Enum2Number[WrapEnum[underlyingEnum], int](e))
+	return MustTo[int](e)
 }
 
 // To returns the underlying representation of this enum.
 func (e WrapEnum[underlyingEnum]) To() underlyingEnum {
-	return To[underlyingEnum](e)
+	return MustTo[underlyingEnum](e)
 }
 
 func (e WrapEnum[underlyingEnum]) String() string {
@@ -72,4 +71,10 @@ func (e WrapEnum[underlyingEnum]) newEnum(repr []any) any {
 	}
 
 	return core.MapAny(xreflect.Convert[WrapEnum[underlyingEnum]](numeric), repr)
+}
+
+// WARNING: Only use this function if you fully understand its behavior.
+// It might cause unexpected results if used improperly.
+func (e WrapEnum[underlyingEnum]) hookAfter() {
+	mustHaveUnderlyingRepr[underlyingEnum](e)
 }

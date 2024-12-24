@@ -35,11 +35,11 @@ func TestProtoNew(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, RoleAdmin, r)
 
-	assert.Equal(t, "user", enum.To[string](RoleUser))
-	assert.Equal(t, proto.ProtoRole_User, enum.To[proto.ProtoRole](RoleUser))
+	assert.Equal(t, "user", enum.MustTo[string](RoleUser))
+	assert.Equal(t, proto.ProtoRole_User, enum.MustTo[proto.ProtoRole](RoleUser))
 
-	assert.Equal(t, "admin", enum.To[string](RoleAdmin))
-	assert.Equal(t, proto.ProtoRole_Admin, enum.To[proto.ProtoRole](RoleAdmin))
+	assert.Equal(t, "admin", enum.MustTo[string](RoleAdmin))
+	assert.Equal(t, proto.ProtoRole_Admin, enum.MustTo[proto.ProtoRole](RoleAdmin))
 }
 
 func TestProtoMap(t *testing.T) {
@@ -74,11 +74,11 @@ func TestProtoMap(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, RoleAdmin, r)
 
-	assert.Equal(t, "user", enum.To[string](RoleUser))
-	assert.Equal(t, proto.ProtoRole_User, enum.To[proto.ProtoRole](RoleUser))
+	assert.Equal(t, "user", enum.MustTo[string](RoleUser))
+	assert.Equal(t, proto.ProtoRole_User, enum.MustTo[proto.ProtoRole](RoleUser))
 
-	assert.Equal(t, "admin", enum.To[string](RoleAdmin))
-	assert.Equal(t, proto.ProtoRole_Admin, enum.To[proto.ProtoRole](RoleAdmin))
+	assert.Equal(t, "admin", enum.MustTo[string](RoleAdmin))
+	assert.Equal(t, proto.ProtoRole_Admin, enum.MustTo[proto.ProtoRole](RoleAdmin))
 }
 
 func TestProtoMapOnlyProtoEnum(t *testing.T) {
@@ -113,9 +113,79 @@ func TestProtoMapOnlyProtoEnum(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, RoleAdmin, r)
 
-	assert.Equal(t, "User", enum.To[string](RoleUser))
-	assert.Equal(t, proto.ProtoRole_User, enum.To[proto.ProtoRole](RoleUser))
+	assert.Equal(t, "User", enum.MustTo[string](RoleUser))
+	assert.Equal(t, proto.ProtoRole_User, enum.MustTo[proto.ProtoRole](RoleUser))
 
-	assert.Equal(t, "Admin", enum.To[string](RoleAdmin))
-	assert.Equal(t, proto.ProtoRole_Admin, enum.To[proto.ProtoRole](RoleAdmin))
+	assert.Equal(t, "Admin", enum.MustTo[string](RoleAdmin))
+	assert.Equal(t, proto.ProtoRole_Admin, enum.MustTo[proto.ProtoRole](RoleAdmin))
+}
+
+func TestProtoStructNoNeedToHaveRepr(t *testing.T) {
+	type role struct{}
+	type Role = enum.WrapUintEnum[role]
+
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
+
+	var (
+		_ = enum.New[Role](proto.ProtoRole_User)
+		_ = enum.New[Role]("admin")
+	)
+}
+
+func TestProtoAnonymousStructNoNeedToHaveRepr(t *testing.T) {
+	type Role = enum.WrapUintEnum[struct{}]
+
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
+
+	var (
+		_ = enum.New[Role](proto.ProtoRole_User)
+		_ = enum.New[Role]("admin")
+	)
+}
+
+func TestProtoNewMustImpl(t *testing.T) {
+	type Role = enum.WrapUintEnum[proto.ProtoRole]
+
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
+
+	var (
+		_ = enum.New[Role](proto.ProtoRole_User)
+	)
+
+	assert.PanicsWithValue(t,
+		"enum WrapUintEnum[ProtoRole] (1 (admin)): require a representation of proto.ProtoRole",
+		func() { enum.New[Role]("admin") },
+	)
+}
+
+func TestProtoMapMustImpl(t *testing.T) {
+	type Role = enum.WrapEnum[proto.ProtoRole]
+
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
+
+	var (
+		_ = enum.Map(RoleUser, proto.ProtoRole_User)
+	)
+
+	assert.PanicsWithValue(t,
+		"enum WrapEnum[ProtoRole] (1): representation User of proto.ProtoRole was already mapped to User",
+		func() { enum.Map(RoleAdmin, proto.ProtoRole_User) },
+	)
+
+	assert.PanicsWithValue(t,
+		"enum WrapEnum[ProtoRole] (1 (admin)): require a representation of proto.ProtoRole",
+		func() { enum.Map(RoleAdmin, "admin") },
+	)
 }

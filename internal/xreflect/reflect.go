@@ -139,3 +139,12 @@ func IsImplement[I any](v any) bool {
 func ImplementZero[T, I any]() I {
 	return any(Zero[T]()).(I)
 }
+
+func IsExported[T any]() bool {
+	name := reflect.TypeOf((*T)(nil)).Elem().Name()
+	if len(name) == 0 {
+		return false
+	}
+
+	return name[0] >= 'A' && name[0] <= 'Z'
+}

@@ -8,7 +8,8 @@ import (
 	"github.com/xybor-x/enum/internal/xreflect"
 )
 
-var _ newEnumable = (WrapUintEnum[int](0))
+var _ newableEnum = WrapUintEnum[int](0)
+var _ hookAfterEnum = WrapUintEnum[int](0)
 
 // WrapUintEnum provides a set of built-in methods to simplify working with uint
 // enums.
@@ -36,7 +37,7 @@ func (e *WrapUintEnum[underlyingEnum]) Scan(a any) error {
 
 // To returns the underlying representation of this enum.
 func (e WrapUintEnum[underlyingEnum]) To() underlyingEnum {
-	return To[underlyingEnum](e)
+	return MustTo[underlyingEnum](e)
 }
 
 func (e WrapUintEnum[underlyingEnum]) String() string {
@@ -62,4 +63,10 @@ func (e WrapUintEnum[underlyingEnum]) newEnum(repr []any) any {
 	}
 
 	return core.MapAny(xreflect.Convert[WrapUintEnum[underlyingEnum]](numeric), repr)
+}
+
+// WARNING: Only use this function if you fully understand its behavior.
+// It might cause unexpected results if used improperly.
+func (e WrapUintEnum[underlyingEnum]) hookAfter() {
+	mustHaveUnderlyingRepr[underlyingEnum](e)
 }

@@ -122,7 +122,7 @@ const (
 ...
 ```
 
-We can integrate the above protobuf enums into `xybor-x/enum`. Here's an example:
+We can integrate them into `xybor-x/enum`. Here's an example:
 
 ```go
 package main
@@ -154,6 +154,9 @@ func main() {
     // Convert from the Role enum to the protobuf enum.
     role = RoleAdmin.To()
     // role == proto.Role_Admin
+
+    // The string representation of these enums is inherited from proto.Role.
+    fmt.Println(RoleUser) // Output: User
 }
 ```
 
