@@ -94,7 +94,7 @@ func TestEnumFinalize(t *testing.T) {
 		_ = enum.Finalize[Role]()
 	)
 
-	assert.PanicsWithValue(t, "enum Role: the enum is already finalized", func() { enum.New[Role]("moderator") })
+	assert.PanicsWithValue(t, "enum Role: the enum was already finalized", func() { enum.New[Role]("moderator") })
 }
 
 func TestEnumMapDuplicated(t *testing.T) {
