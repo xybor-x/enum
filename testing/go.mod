@@ -6,6 +6,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/stretchr/testify v1.10.0
 	github.com/xybor-x/enum v0.3.0
+	google.golang.org/protobuf v1.36.0
 )
 
 require (

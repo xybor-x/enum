@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/xybor-x/enum/internal/core"
-	"github.com/xybor-x/enum/internal/mtkey"
-	"github.com/xybor-x/enum/internal/mtmap"
 )
+
+var _ newableEnum = SafeEnum[int]{}
+var _ hookAfterEnum = SafeEnum[int]{}
 
 // SafeEnum defines a strong type-safe enum. Like WrapEnum, it provides a set
 // of built-in methods to simplify working with enums. However, it doesn't
@@ -41,7 +42,12 @@ func (e *SafeEnum[underlyingEnum]) Scan(a any) error {
 }
 
 func (e SafeEnum[underlyingEnum]) Int() int {
-	return mtmap.Get(mtkey.Enum2Number[SafeEnum[underlyingEnum], int](e))
+	return MustTo[int](e)
+}
+
+// To returns the underlying representation of this enum.
+func (e SafeEnum[underlyingEnum]) To() underlyingEnum {
+	return MustTo[underlyingEnum](e)
 }
 
 func (e SafeEnum[underlyingEnum]) String() string {
@@ -58,6 +64,17 @@ func (e SafeEnum[underlyingEnum]) GoString() string {
 
 // WARNING: Only use this function if you fully understand its behavior.
 // It might cause unexpected results if used improperly.
-func (e SafeEnum[underlyingEnum]) newEnum(id int64, s string) any {
-	return core.MapAny(id, SafeEnum[underlyingEnum]{inner: s}, s)
+func (e SafeEnum[underlyingEnum]) newEnum(reprs []any) any {
+	str, ok := core.GetStringRepresentation(reprs)
+	if !ok {
+		panic("SafeEnum requires at least a string representation")
+	}
+
+	return core.MapAny(SafeEnum[underlyingEnum]{inner: str}, reprs)
+}
+
+// WARNING: Only use this function if you fully understand its behavior.
+// It might cause unexpected results if used improperly.
+func (e SafeEnum[underlyingEnum]) hookAfter() {
+	mustHaveUnderlyingRepr[underlyingEnum](e)
 }

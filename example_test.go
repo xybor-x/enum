@@ -14,7 +14,7 @@ func ExampleNew() {
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
-		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+		_         = enum.Finalize[Role]()
 	)
 
 	// Print the string representation of enum values.
@@ -45,7 +45,7 @@ func ExampleMap() {
 	var (
 		_ = enum.Map(RoleUser, "user")
 		_ = enum.Map(RoleAdmin, "admin")
-		_ = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+		_ = enum.Finalize[Role]()
 	)
 
 	// Print all enum values.
@@ -72,7 +72,7 @@ func ExampleWrapEnum() {
 	var (
 		_ = enum.Map(RoleUser, "user")
 		_ = enum.Map(RoleAdmin, "admin")
-		_ = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+		_ = enum.Finalize[Role]()
 	)
 
 	// Define a struct that includes the Role enum.
@@ -109,7 +109,7 @@ func ExampleSafeEnum() {
 	var (
 		RoleUser  = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
-		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+		_         = enum.Finalize[Role]()
 	)
 
 	// As Role is a SafeEnum, it can utilize methods from SafeEnum, including
@@ -155,7 +155,7 @@ func ExampleNullable() {
 	var (
 		_         = enum.New[Role]("user")
 		RoleAdmin = enum.New[Role]("admin")
-		_         = enum.Finalize[Role]() // Optional: ensure no new enum values can be added to Role.
+		_         = enum.Finalize[Role]()
 	)
 
 	// Define a struct that includes the Role enum.

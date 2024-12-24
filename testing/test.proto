@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package xyborenum.testing;
+
+option go_package = "github.com/xybor-x/enum/testing/proto";
+
+enum ProtoRole {
+    User = 0;
+    Admin = 1;
+    SomethingElse = 2;
+}

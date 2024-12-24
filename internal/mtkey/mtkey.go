@@ -1,75 +1,70 @@
 package mtkey
 
-import "github.com/xybor-x/enum/internal/xreflect"
+import (
+	"reflect"
 
-type enum2String[T any] struct{ key T }
+	"github.com/xybor-x/enum/internal/xreflect"
+)
 
-func (enum2String[T]) InferValue() string { panic("not implemented") }
+type allEnums[Enum any] struct{}
 
-func Enum2String[T any](enum T) enum2String[T] {
-	return enum2String[T]{key: enum}
+func (allEnums[Enum]) InferValue() []Enum { panic("not implemented") }
+
+func AllEnums[Enum any]() allEnums[Enum] {
+	return allEnums[Enum]{}
 }
 
-type enum2Number[T any, N xreflect.Number] struct{ key T }
+type isFinalized[Enum any] struct{}
 
-func (enum2Number[T, N]) InferValue() N { panic("not implemented") }
+func (isFinalized[Enum]) InferValue() bool { panic("not implemented") }
 
-func Enum2Number[T any, N xreflect.Number](enum T) enum2Number[T, N] {
-	return enum2Number[T, N]{key: enum}
+func IsFinalized[Enum any]() isFinalized[Enum] {
+	return isFinalized[Enum]{}
 }
 
-type string2Enum[T any] struct{ key string }
+type nameOf[Enum any] struct{}
 
-func (string2Enum[T]) InferValue() T { panic("not implemented") }
+func (nameOf[Enum]) InferValue() string { panic("not implemented") }
 
-func String2Enum[T any](s string) string2Enum[T] {
-	return string2Enum[T]{key: s}
+func NameOf[Enum any]() nameOf[Enum] {
+	return nameOf[Enum]{}
 }
 
-type number2Enum[T any] struct{ key any }
+type trueNameOf[Enum any] struct{}
 
-func (number2Enum[T]) InferValue() T { panic("not implemented") }
+func (trueNameOf[Enum]) InferValue() string { panic("not implemented") }
 
-func Number2Enum[N xreflect.Number, T any](key N) number2Enum[T] {
-	return number2Enum[T]{key: key}
+func TrueNameOf[Enum any]() trueNameOf[Enum] {
+	return trueNameOf[Enum]{}
 }
 
-type allEnums[T any] struct{}
+type enum2JSON[Enum any] struct{ key Enum }
 
-func (allEnums[T]) InferValue() []T { panic("not implemented") }
+func (enum2JSON[Enum]) InferValue() string { panic("not implemented") }
 
-func AllEnums[T any]() allEnums[T] {
-	return allEnums[T]{}
+func Enum2JSON[Enum any](key Enum) enum2JSON[Enum] {
+	return enum2JSON[Enum]{key: key}
 }
 
-type isFinalized[T any] struct{}
-
-func (isFinalized[T]) InferValue() bool { panic("not implemented") }
-
-func IsFinalized[T any]() isFinalized[T] {
-	return isFinalized[T]{}
+type enum2Repr[Enum any] struct {
+	key Enum
+	typ reflect.Type
 }
 
-type nameOf[T any] struct{}
+func (enum2Repr[Enum]) InferValue() any { panic("not implemented") }
 
-func (nameOf[T]) InferValue() string { panic("not implemented") }
-
-func NameOf[T any]() nameOf[T] {
-	return nameOf[T]{}
+func Enum2Repr[Enum, P any](key Enum) enum2Repr[Enum] {
+	return enum2Repr[Enum]{key: key, typ: reflect.TypeOf(xreflect.Zero[P]())}
 }
 
-type trueNameOf[T any] struct{}
-
-func (trueNameOf[T]) InferValue() string { panic("not implemented") }
-
-func TrueNameOf[T any]() trueNameOf[T] {
-	return trueNameOf[T]{}
+func Enum2ReprWith[Enum any](key Enum, extra any) enum2Repr[Enum] {
+	return enum2Repr[Enum]{key: key, typ: reflect.TypeOf(extra)}
 }
 
-type enumToJSON[T any] struct{ key T }
+type repr2Enum[Enum any] struct{ key any }
 
-func (enumToJSON[T]) InferValue() string { panic("not implemented") }
+func (repr2Enum[Enum]) InferValue() Enum { panic("not implemented") }
 
-func EnumToJSON[T any](key T) enumToJSON[T] {
-	return enumToJSON[T]{key: key}
+func Repr2Enum[Enum any](key any) repr2Enum[Enum] {
+	return repr2Enum[Enum]{key: key}
 }
