@@ -265,7 +265,8 @@ func To[P, Enum any](enum Enum) (P, bool) {
 }
 
 // MustTo returns the representation (the type is relied on P type parameter)
-// for the given enum value. It returns zero value if the enum is invalid.
+// for the given enum value. It returns zero value if the enum is invalid or the
+// enum doesn't have any representation of type P..
 func MustTo[P, Enum any](enum Enum) P {
 	val, _ := To[P](enum)
 	return val
