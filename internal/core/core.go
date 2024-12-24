@@ -267,10 +267,6 @@ func capitalizeFirst(s string) string {
 // mapEnumNumber maps the enum to all its number representations (including
 // signed and unsigned integers, floating-point numbers) and vice versa.
 func mapEnumNumber[Enum any](enum Enum, n any) {
-	if !xreflect.IsNumber(n) {
-		panic(fmt.Sprintf("require a number, got %v", n))
-	}
-
 	if v, ok := mtmap.Get2(mtkey.Repr2Enum[Enum](n)); ok {
 		panic(fmt.Sprintf("enum %s (%v): number %v was already mapped to %v",
 			reflect.TypeOf(enum).Name(), enum, n, v))
