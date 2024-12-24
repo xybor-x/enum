@@ -180,7 +180,7 @@ func MapAny[Enum any](enum Enum, reprs []any) Enum {
 	}
 
 	if !hasStrRepr {
-		panic(fmt.Sprintf("enum %s (%v): not found any string representation", TrueNameOf[Enum](), enum))
+		panic(fmt.Sprintf("enum %s (%#v): not found any string representation", TrueNameOf[Enum](), enum))
 	}
 
 	if numericRepr == nil {
@@ -190,12 +190,12 @@ func MapAny[Enum any](enum Enum, reprs []any) Enum {
 	mapEnumNumber(enum, numericRepr)
 
 	if v, ok := mtmap.Get2(mtkey.Repr2Enum[Enum](strRepr)); ok {
-		panic(fmt.Sprintf("enum %s (%v): string %s was already mapped to %v",
+		panic(fmt.Sprintf("enum %s (%#v): string %s was already mapped to %v",
 			TrueNameOf[Enum](), enum, strRepr, v))
 	}
 
 	if _, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](enum)); ok {
-		panic(fmt.Sprintf("enum %s (%v): do not map string twice", TrueNameOf[Enum](), enum))
+		panic(fmt.Sprintf("enum %s (%#v): do not map string twice", TrueNameOf[Enum](), enum))
 	}
 
 	mtmap.Set(mtkey.Enum2JSON(enum), strconv.Quote(strRepr))
