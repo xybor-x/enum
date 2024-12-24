@@ -12,6 +12,7 @@ package enum
 
 import (
 	"database/sql/driver"
+	"encoding/xml"
 	"fmt"
 	"math"
 	"reflect"
@@ -303,6 +304,32 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 	}
 
 	*t = enum
+	return nil
+}
+
+// MarshalXML converts enum to its string representation.
+func MarshalXML[Enum any](encoder *xml.Encoder, start xml.StartElement, enum Enum) error {
+	str, ok := To[string](enum)
+	if !ok {
+		return fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), enum)
+	}
+
+	return encoder.EncodeElement(str, start)
+}
+
+// UnmarshalXML parses the string representation back into an enum.
+func UnmarshalXML[Enum any](decoder *xml.Decoder, start xml.StartElement, enum *Enum) error {
+	var str string
+	if err := decoder.DecodeElement(&str, &start); err != nil {
+		return err
+	}
+
+	val, ok := FromString[Enum](str)
+	if !ok {
+		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), str)
+	}
+
+	*enum = val
 	return nil
 }
 

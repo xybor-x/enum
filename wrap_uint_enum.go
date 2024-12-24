@@ -2,6 +2,7 @@ package enum
 
 import (
 	"database/sql/driver"
+	"encoding/xml"
 	"fmt"
 
 	"github.com/xybor-x/enum/internal/core"
@@ -42,6 +43,14 @@ func (e WrapUintEnum[underlyingEnum]) To() underlyingEnum {
 
 func (e WrapUintEnum[underlyingEnum]) String() string {
 	return ToString(e)
+}
+
+func (e WrapUintEnum[underlyingEnum]) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {
+	return MarshalXML(encoder, start, e)
+}
+
+func (e *WrapUintEnum[underlyingEnum]) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
+	return UnmarshalXML(decoder, start, e)
 }
 
 func (e WrapUintEnum[underlyingEnum]) GoString() string {
