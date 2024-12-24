@@ -120,8 +120,8 @@ func TestProtoMapOnlyProtoEnum(t *testing.T) {
 	assert.Equal(t, proto.ProtoRole_Admin, enum.MustTo[proto.ProtoRole](RoleAdmin))
 }
 
-func TestProtoStructNoNeedToHaveRepr(t *testing.T) {
-	type role struct{}
+func TestProtoAnyNoNeedToHaveRepr(t *testing.T) {
+	type role any
 	type Role = enum.WrapUintEnum[role]
 
 	const (
@@ -133,10 +133,12 @@ func TestProtoStructNoNeedToHaveRepr(t *testing.T) {
 		_ = enum.New[Role](proto.ProtoRole_User)
 		_ = enum.New[Role]("admin")
 	)
+
+	assert.Equal(t, "User", RoleUser.To())
 }
 
-func TestProtoAnonymousStructNoNeedToHaveRepr(t *testing.T) {
-	type Role = enum.WrapUintEnum[struct{}]
+func TestProtoAnonymousAnyNoNeedToHaveRepr(t *testing.T) {
+	type Role = enum.WrapUintEnum[any]
 
 	const (
 		RoleUser Role = iota
@@ -147,6 +149,25 @@ func TestProtoAnonymousStructNoNeedToHaveRepr(t *testing.T) {
 		_ = enum.New[Role](proto.ProtoRole_User)
 		_ = enum.New[Role]("admin")
 	)
+
+	assert.Equal(t, "User", RoleUser.To())
+}
+
+func TestProtoIntNoNeedToHaveRepr(t *testing.T) {
+	type role int
+	type Role = enum.WrapUintEnum[role]
+
+	const (
+		RoleUser Role = iota
+		RoleAdmin
+	)
+
+	var (
+		_ = enum.New[Role](proto.ProtoRole_User)
+		_ = enum.New[Role]("admin")
+	)
+
+	assert.Equal(t, role(1), RoleAdmin.To())
 }
 
 func TestProtoNewMustImpl(t *testing.T) {

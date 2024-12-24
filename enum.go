@@ -367,19 +367,50 @@ func TrueNameOf[T any]() string {
 }
 
 // mustHaveUnderlyingRepr ensures an enum has a representation of its underlying
-// type. It ignores cases where the underlying type is unexported and does not
-// define any methods, OR the enum is not defined successfully.
-func mustHaveUnderlyingRepr[underlyingEnum any, Enum any](e Enum) {
-	if reflect.TypeOf((*underlyingEnum)(nil)).Elem().NumMethod() == 0 && !xreflect.IsExported[underlyingEnum]() {
-		return
-	}
-
+// type.
+func mustHaveUnderlyingRepr[underlyingEnum, Enum any](e Enum) {
 	if !IsValid(e) {
 		return
 	}
+
+	mapUnderlying[underlyingEnum](e)
 
 	if _, ok := To[underlyingEnum](e); !ok {
 		panic(fmt.Sprintf("enum %s (%#v): require a representation of %T",
 			TrueNameOf[Enum](), e, xreflect.Zero[underlyingEnum]()))
 	}
+}
+
+// mapUnderlying maps the enum to underlying enum in case the underlying enum
+// is a string or numeric type. It ignores cases where the underlying type is
+// exported and define at least one method.
+func mapUnderlying[underlyingEnum, Enum any](enum Enum) {
+	if reflect.TypeOf((*underlyingEnum)(nil)).Elem().NumMethod() > 0 || xreflect.IsExported[underlyingEnum]() {
+		return
+	}
+
+	var repr underlyingEnum
+	switch {
+	case xreflect.IsSignedInt(repr):
+		repr = xreflect.Convert[underlyingEnum](MustTo[int64](enum))
+	case xreflect.IsUnsignedInt(repr):
+		repr = xreflect.Convert[underlyingEnum](MustTo[uint64](enum))
+	case xreflect.IsFloat32(repr):
+		repr = xreflect.Convert[underlyingEnum](MustTo[float32](enum))
+	case xreflect.IsFloat64(repr):
+		repr = xreflect.Convert[underlyingEnum](MustTo[float64](enum))
+	case xreflect.IsString(repr):
+		repr = xreflect.Convert[underlyingEnum](MustTo[string](enum))
+	default:
+		str := MustTo[string](enum)
+		if reflect.TypeOf(str).ConvertibleTo(reflect.TypeOf((*underlyingEnum)(nil)).Elem()) {
+			repr = xreflect.Convert[underlyingEnum](str)
+		} else {
+			// Ignore if the underlying enum is not a string or numeric type.
+			return
+		}
+	}
+
+	mtmap.Set(mtkey.Repr2Enum[Enum](repr), enum)
+	mtmap.Set(mtkey.Enum2Repr[Enum, underlyingEnum](enum), any(repr))
 }

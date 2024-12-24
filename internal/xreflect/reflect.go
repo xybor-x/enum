@@ -2,7 +2,6 @@ package xreflect
 
 import (
 	"reflect"
-	"slices"
 )
 
 type Number interface {
@@ -12,103 +11,195 @@ type Number interface {
 }
 
 var (
-	intKinds  = []reflect.Kind{reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64}
-	uintKinds = []reflect.Kind{reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64}
-
-	intTypes = []reflect.Type{
-		reflect.TypeOf(int(0)),
-		reflect.TypeOf(int8(0)),
-		reflect.TypeOf(int16(0)),
-		reflect.TypeOf(int32(0)),
-		reflect.TypeOf(int64(0)),
+	IntKinds = map[reflect.Kind]bool{
+		reflect.Int:   true,
+		reflect.Int8:  true,
+		reflect.Int16: true,
+		reflect.Int32: true,
+		reflect.Int64: true,
 	}
-	uintTypes = []reflect.Type{
-		reflect.TypeOf(uint(0)),
-		reflect.TypeOf(uint8(0)),
-		reflect.TypeOf(uint16(0)),
-		reflect.TypeOf(uint32(0)),
-		reflect.TypeOf(uint64(0)),
+	UintKinds = map[reflect.Kind]bool{
+		reflect.Uint:   true,
+		reflect.Uint8:  true,
+		reflect.Uint16: true,
+		reflect.Uint32: true,
+		reflect.Uint64: true,
+	}
+
+	intTypes = map[reflect.Type]bool{
+		reflect.TypeOf(int(0)):   true,
+		reflect.TypeOf(int8(0)):  true,
+		reflect.TypeOf(int16(0)): true,
+		reflect.TypeOf(int32(0)): true,
+		reflect.TypeOf(int64(0)): true,
+	}
+	uintTypes = map[reflect.Type]bool{
+		reflect.TypeOf(uint(0)):   true,
+		reflect.TypeOf(uint8(0)):  true,
+		reflect.TypeOf(uint16(0)): true,
+		reflect.TypeOf(uint32(0)): true,
+		reflect.TypeOf(uint64(0)): true,
 	}
 )
 
 // IsSignedInt returns true if the value is one of signed integer types.
 func IsSignedInt(v any) bool {
-	return slices.Contains(intKinds, reflect.TypeOf(v).Kind())
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return IntKinds[kind]
 }
 
 // IsUnsignedInt returns true if the value is one of unsigned integer types.
 func IsUnsignedInt(v any) bool {
-	return slices.Contains(uintKinds, reflect.TypeOf(v).Kind())
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return UintKinds[kind]
 }
 
 // IsInt returns true if the value is one of any integer types.
 func IsInt(v any) bool {
-	return IsSignedInt(v) || IsUnsignedInt(v)
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return IsSignedInt(kind) || IsUnsignedInt(kind)
 }
 
 // IsFloat32 returns true if the value is a float32.
 func IsFloat32(v any) bool {
-	return reflect.TypeOf(v).Kind() == reflect.Float32
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return kind == reflect.Float32
 }
 
 // IsFloat64 returns true if the value is a float64.
 func IsFloat64(v any) bool {
-	return reflect.TypeOf(v).Kind() == reflect.Float64
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return kind == reflect.Float64
 }
 
 // IsFloat returns true if the value is a float.
 func IsFloat(v any) bool {
-	return IsFloat32(v) || IsFloat64(v)
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return IsFloat32(kind) || IsFloat64(kind)
 }
 
 // IsNumber returns true if the value is a number.
 func IsNumber(v any) bool {
-	return IsFloat(v) || IsInt(v)
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return IsFloat(kind) || IsInt(kind)
 }
 
 // IsString returns true if the value is a string.
 func IsString(v any) bool {
-	return reflect.String == reflect.TypeOf(v).Kind()
+	kind, ok := v.(reflect.Kind)
+	if !ok {
+		if typ := reflect.TypeOf(v); typ != nil {
+			kind = typ.Kind()
+		}
+	}
+	return reflect.String == kind
 }
 
 // IsPrimitiveSignedInt returns true if the value is one of signed integer types.
 func IsPrimitiveSignedInt(v any) bool {
-	return slices.Contains(intTypes, reflect.TypeOf(v))
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return intTypes[typ]
 }
 
 // IsPrimitiveUnsignedInt returns true if the value is one of unsigned integer types.
 func IsPrimitiveUnsignedInt(v any) bool {
-	return slices.Contains(uintTypes, reflect.TypeOf(v))
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return uintTypes[typ]
 }
 
 // IsPrimitiveInt returns true if the value is one of any integer types.
 func IsPrimitiveInt(v any) bool {
-	return IsPrimitiveSignedInt(v) || IsPrimitiveUnsignedInt(v)
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return IsPrimitiveSignedInt(typ) || IsPrimitiveUnsignedInt(typ)
 }
 
 // IsPrimitiveFloat32 returns true if the value is a float32.
 func IsPrimitiveFloat32(v any) bool {
-	return reflect.TypeOf(v) == reflect.TypeOf(float32(0))
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return typ == reflect.TypeOf(float32(0))
 }
 
 // IsPrimitiveFloat64 returns true if the value is a float64.
 func IsPrimitiveFloat64(v any) bool {
-	return reflect.TypeOf(v) == reflect.TypeOf(float64(0))
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return typ == reflect.TypeOf(float64(0))
 }
 
 // IsPrimitiveFloat returns true if the value is a float.
 func IsPrimitiveFloat(v any) bool {
-	return IsPrimitiveFloat32(v) || IsPrimitiveFloat64(v)
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return IsPrimitiveFloat32(typ) || IsPrimitiveFloat64(typ)
 }
 
 // IsPrimitiveNumber returns true if the value is a number.
 func IsPrimitiveNumber(v any) bool {
-	return IsPrimitiveFloat(v) || IsPrimitiveInt(v)
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return IsPrimitiveFloat(typ) || IsPrimitiveInt(v)
 }
 
 // IsPrimitiveString returns true if the value is a string.
 func IsPrimitiveString(v any) bool {
-	return reflect.TypeOf(v) == reflect.TypeOf("")
+	typ, ok := v.(reflect.Type)
+	if !ok {
+		typ = reflect.TypeOf(v)
+	}
+	return typ == reflect.TypeOf("")
 }
 
 // Convert returns the value converted to type T.
@@ -142,9 +233,5 @@ func ImplementZero[T, I any]() I {
 
 func IsExported[T any]() bool {
 	name := reflect.TypeOf((*T)(nil)).Elem().Name()
-	if len(name) == 0 {
-		return false
-	}
-
-	return name[0] >= 'A' && name[0] <= 'Z'
+	return len(name) > 0 && name[0] >= 'A' && name[0] <= 'Z'
 }
