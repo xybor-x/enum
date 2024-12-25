@@ -2,6 +2,7 @@ package enum
 
 import (
 	"database/sql/driver"
+	"encoding/xml"
 	"fmt"
 
 	"github.com/xybor-x/enum/internal/core"
@@ -31,6 +32,14 @@ func (e SafeEnum[underlyingEnum]) MarshalJSON() ([]byte, error) {
 
 func (e *SafeEnum[underlyingEnum]) UnmarshalJSON(data []byte) error {
 	return UnmarshalJSON(data, e)
+}
+
+func (e SafeEnum[underlyingEnum]) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {
+	return MarshalXML(encoder, start, e)
+}
+
+func (e *SafeEnum[underlyingEnum]) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
+	return UnmarshalXML(decoder, start, e)
 }
 
 func (e SafeEnum[underlyingEnum]) Value() (driver.Value, error) {

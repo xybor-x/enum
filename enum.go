@@ -12,6 +12,7 @@ package enum
 
 import (
 	"database/sql/driver"
+	"encoding/xml"
 	"fmt"
 	"math"
 	"reflect"
@@ -266,14 +267,14 @@ func To[P, Enum any](enum Enum) (P, bool) {
 
 // MustTo returns the representation (the type is relied on P type parameter)
 // for the given enum value. It returns zero value if the enum is invalid or the
-// enum doesn't have any representation of type P..
+// enum doesn't have any representation of type P.
 func MustTo[P, Enum any](enum Enum) P {
 	val, _ := To[P](enum)
 	return val
 }
 
-// IsValid checks if an enum value is valid.
-// It returns true if the enum value is valid, and false otherwise.
+// IsValid checks if an enum value is valid. It returns true if the enum value
+// is valid, and false otherwise.
 func IsValid[Enum any](value Enum) bool {
 	_, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](value))
 	return ok
@@ -303,6 +304,32 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 	}
 
 	*t = enum
+	return nil
+}
+
+// MarshalXML converts enum to its string representation.
+func MarshalXML[Enum any](encoder *xml.Encoder, start xml.StartElement, enum Enum) error {
+	str, ok := To[string](enum)
+	if !ok {
+		return fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), enum)
+	}
+
+	return encoder.EncodeElement(str, start)
+}
+
+// UnmarshalXML parses the string representation back into an enum.
+func UnmarshalXML[Enum any](decoder *xml.Decoder, start xml.StartElement, enum *Enum) error {
+	var str string
+	if err := decoder.DecodeElement(&str, &start); err != nil {
+		return err
+	}
+
+	val, ok := FromString[Enum](str)
+	if !ok {
+		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), str)
+	}
+
+	*enum = val
 	return nil
 }
 
