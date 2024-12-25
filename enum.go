@@ -267,14 +267,14 @@ func To[P, Enum any](enum Enum) (P, bool) {
 
 // MustTo returns the representation (the type is relied on P type parameter)
 // for the given enum value. It returns zero value if the enum is invalid or the
-// enum doesn't have any representation of type P..
+// enum doesn't have any representation of type P.
 func MustTo[P, Enum any](enum Enum) P {
 	val, _ := To[P](enum)
 	return val
 }
 
-// IsValid checks if an enum value is valid.
-// It returns true if the enum value is valid, and false otherwise.
+// IsValid checks if an enum value is valid. It returns true if the enum value
+// is valid, and false otherwise.
 func IsValid[Enum any](value Enum) bool {
 	_, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](value))
 	return ok
