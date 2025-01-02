@@ -167,6 +167,11 @@ func TestNullableYAML(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, s.Role.Valid)
 	assert.Equal(t, RoleUser, s.Role.Enum)
+
+	err = yaml.Unmarshal([]byte("id: 1\nname: tester\nrole:\n- user\n"), &s)
+	assert.NoError(t, err)
+	assert.True(t, s.Role.Valid)
+	assert.Equal(t, RoleUser, s.Role.Enum)
 }
 
 func TestNullableYAMLNull(t *testing.T) {

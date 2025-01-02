@@ -323,7 +323,7 @@ func MarshalYAML[Enum any](value Enum) (any, error) {
 func UnmarshalYAML[Enum any](value *yaml.Node, t *Enum) error {
 	// Check if the value is a scalar (string in this case)
 	if value.Kind != yaml.ScalarNode {
-		return fmt.Errorf("invalid yaml kind: only supports scalar")
+		return fmt.Errorf("enum %s: only supports scalar in yaml enum", TrueNameOf[Enum]())
 	}
 
 	// Assign the string value directly

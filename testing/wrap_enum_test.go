@@ -377,12 +377,18 @@ func TestWrapEnumUnmarshalYAML(t *testing.T) {
 		RoleUser = enum.New[Role]("user")
 	)
 
-	var data Role
+	type Test struct {
+		Role Role `yaml:"role"`
+	}
+	var data Test
 
-	err := yaml.Unmarshal([]byte(`user`), &data)
+	err := yaml.Unmarshal([]byte(`role: user`), &data)
 	assert.NoError(t, err)
-	assert.Equal(t, RoleUser, data)
+	assert.Equal(t, RoleUser, data.Role)
 
-	err = yaml.Unmarshal([]byte(`admin`), &data)
+	err = yaml.Unmarshal([]byte("role: admin"), &data)
 	assert.ErrorContains(t, err, "enum WrapEnum[role]: unknown string admin")
+
+	err = yaml.Unmarshal([]byte("role:\n- user\n"), &data)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: only supports scalar in yaml enum")
 }

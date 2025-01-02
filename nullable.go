@@ -42,12 +42,9 @@ func (e Nullable[Enum]) MarshalYAML() (any, error) {
 }
 
 func (e *Nullable[Enum]) UnmarshalYAML(node *yaml.Node) error {
-	if node.Kind != yaml.ScalarNode && node.Tag == "!!null" {
-		var defaultEnum Enum
-		e.Enum, e.Valid = defaultEnum, false
-		return nil
-	}
-
+	// NOTE: Currently, yaml.Unmarshal will not trigger UnmarshalYAML in case of
+	// null. That's the reason why we only need to handle the non-null value
+	// here.
 	return UnmarshalYAML(node, &e.Enum)
 }
 
