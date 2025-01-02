@@ -2,10 +2,12 @@ package testing_test
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xybor-x/enum"
+	"gopkg.in/yaml.v3"
 )
 
 func TestWrapEnumMarshalJSON(t *testing.T) {
@@ -306,4 +308,87 @@ func TestSafeEnumScanSQL(t *testing.T) {
 	// Invalid enum
 	err = data.Scan("admin")
 	assert.ErrorContains(t, err, "enum SafeEnum[role]: unknown string admin")
+}
+
+func TestWrapEnumMarshalXMLStruct(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	var (
+		RoleUser = enum.New[Role]("user")
+	)
+
+	type Test1 struct {
+		Role Role `xml:"CustomRole"`
+	}
+
+	data, err := xml.Marshal(Test1{Role: RoleUser})
+	assert.NoError(t, err)
+	assert.Equal(t, "<Test1><CustomRole>user</CustomRole></Test1>", string(data))
+
+	type Test2 struct {
+		Role Role
+	}
+
+	data, err = xml.Marshal(Test2{Role: RoleUser})
+	assert.NoError(t, err)
+	assert.Equal(t, "<Test2><Role>user</Role></Test2>", string(data))
+}
+
+func TestWrapEnumUnmarshalXML(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	var (
+		RoleUser = enum.New[Role]("user")
+	)
+
+	var data Role
+
+	err := xml.Unmarshal([]byte(`<Role>user</Role>`), &data)
+	assert.NoError(t, err)
+	assert.Equal(t, RoleUser, data)
+
+	err = xml.Unmarshal([]byte(`<Role>admin</Role>`), &data)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: unknown string admin")
+}
+
+func TestWrapEnumMarshalYAML(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	var (
+		RoleUser = enum.New[Role]("user")
+	)
+
+	data, err := yaml.Marshal(RoleUser)
+	assert.NoError(t, err)
+	assert.Equal(t, "user\n", string(data))
+
+	_, err = yaml.Marshal(Role(1))
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: invalid value 1")
+}
+
+func TestWrapEnumUnmarshalYAML(t *testing.T) {
+	type role int
+	type Role = enum.WrapEnum[role]
+
+	var (
+		RoleUser = enum.New[Role]("user")
+	)
+
+	type Test struct {
+		Role Role `yaml:"role"`
+	}
+	var data Test
+
+	err := yaml.Unmarshal([]byte(`role: user`), &data)
+	assert.NoError(t, err)
+	assert.Equal(t, RoleUser, data.Role)
+
+	err = yaml.Unmarshal([]byte("role: admin"), &data)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: unknown string admin")
+
+	err = yaml.Unmarshal([]byte("role:\n- user\n"), &data)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: only supports scalar in yaml enum")
 }

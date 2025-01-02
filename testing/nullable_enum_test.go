@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xybor-x/enum"
+	"gopkg.in/yaml.v3"
 )
 
 func TestNullableJSON(t *testing.T) {
@@ -135,4 +136,76 @@ func TestNullableSQLNull(t *testing.T) {
 
 	// Check if the deserialized value matches the expected value
 	assert.False(t, retrievedRole.Valid)
+}
+
+func TestNullableYAML(t *testing.T) {
+	type role any
+	type Role = enum.WrapEnum[role]
+	type NullRole = enum.Nullable[Role]
+
+	var (
+		RoleUser = enum.New[Role]("user")
+	)
+
+	type TestYAML struct {
+		ID   int      `yaml:"id"`
+		Name string   `yaml:"name"`
+		Role NullRole `yaml:"role"`
+	}
+
+	s := TestYAML{
+		ID:   1,
+		Name: "tester",
+		Role: NullRole{Enum: RoleUser, Valid: true},
+	}
+
+	data, err := yaml.Marshal(s)
+	assert.NoError(t, err)
+	assert.Equal(t, "id: 1\nname: tester\nrole: user\n", string(data))
+
+	err = yaml.Unmarshal([]byte("id: 1\nname: tester\nrole: user\n"), &s)
+	assert.NoError(t, err)
+	assert.True(t, s.Role.Valid)
+	assert.Equal(t, RoleUser, s.Role.Enum)
+
+	err = yaml.Unmarshal([]byte("id: 1\nname: tester\nrole:\n- user\n"), &s)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: only supports scalar in yaml enum")
+}
+
+func TestNullableYAMLNull(t *testing.T) {
+	type role any
+	type Role = enum.WrapEnum[role]
+	type NullRole = enum.Nullable[Role]
+
+	var (
+		_ = enum.New[Role]("user")
+	)
+
+	type TestYAML struct {
+		ID   int      `yaml:"id"`
+		Name string   `yaml:"name"`
+		Role NullRole `yaml:"role"`
+	}
+
+	s := TestYAML{
+		ID:   1,
+		Name: "tester",
+		Role: NullRole{},
+	}
+
+	data, err := yaml.Marshal(s)
+	assert.NoError(t, err)
+	assert.Equal(t, "id: 1\nname: tester\nrole:\n", string(data))
+
+	err = yaml.Unmarshal([]byte("id: 1\nname: tester\nrole:\n"), &s)
+	assert.NoError(t, err)
+	assert.False(t, s.Role.Valid)
+
+	err = yaml.Unmarshal([]byte("id: 1\nname: tester\nrole: null\n"), &s)
+	assert.NoError(t, err)
+	assert.False(t, s.Role.Valid)
+
+	err = yaml.Unmarshal([]byte("id: 1\nname: tester\nrole: ~\n"), &s)
+	assert.NoError(t, err)
+	assert.False(t, s.Role.Valid)
 }

@@ -1,8 +1,12 @@
 package enum
 
-import "database/sql/driver"
+import (
+	"database/sql/driver"
 
-// Nullable allows handling nullable enums in both JSON and SQL.
+	"gopkg.in/yaml.v3"
+)
+
+// Nullable allows handling nullable enums in JSON, YAML, and SQL.
 type Nullable[Enum any] struct {
 	Enum  Enum
 	Valid bool
@@ -24,6 +28,24 @@ func (e *Nullable[Enum]) UnmarshalJSON(data []byte) error {
 	}
 
 	return UnmarshalJSON(data, &e.Enum)
+}
+
+func (e Nullable[Enum]) MarshalYAML() (any, error) {
+	if !e.Valid {
+		return yaml.Node{
+			Kind: yaml.ScalarNode,
+			Tag:  "!!null", // Use the YAML null tag
+		}, nil
+	}
+
+	return MarshalYAML(e.Enum)
+}
+
+func (e *Nullable[Enum]) UnmarshalYAML(node *yaml.Node) error {
+	// NOTE: Currently, yaml.Unmarshal will not trigger UnmarshalYAML in case of
+	// null. That's the reason why we only need to handle the non-null value
+	// here.
+	return UnmarshalYAML(node, &e.Enum)
 }
 
 func (e Nullable[Enum]) Value() (driver.Value, error) {

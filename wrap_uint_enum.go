@@ -7,6 +7,7 @@ import (
 
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/xreflect"
+	"gopkg.in/yaml.v3"
 )
 
 var _ newableEnum = WrapUintEnum[int](0)
@@ -28,6 +29,22 @@ func (e *WrapUintEnum[underlyingEnum]) UnmarshalJSON(data []byte) error {
 	return UnmarshalJSON(data, e)
 }
 
+func (e WrapUintEnum[underlyingEnum]) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {
+	return MarshalXML(encoder, start, e)
+}
+
+func (e *WrapUintEnum[underlyingEnum]) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
+	return UnmarshalXML(decoder, start, e)
+}
+
+func (e WrapUintEnum[underlyingEnum]) MarshalYAML() (any, error) {
+	return MarshalYAML(e)
+}
+
+func (e *WrapUintEnum[underlyingEnum]) UnmarshalYAML(node *yaml.Node) error {
+	return UnmarshalYAML(node, e)
+}
+
 func (e WrapUintEnum[underlyingEnum]) Value() (driver.Value, error) {
 	return ValueSQL(e)
 }
@@ -43,14 +60,6 @@ func (e WrapUintEnum[underlyingEnum]) To() underlyingEnum {
 
 func (e WrapUintEnum[underlyingEnum]) String() string {
 	return ToString(e)
-}
-
-func (e WrapUintEnum[underlyingEnum]) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {
-	return MarshalXML(encoder, start, e)
-}
-
-func (e *WrapUintEnum[underlyingEnum]) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
-	return UnmarshalXML(decoder, start, e)
 }
 
 func (e WrapUintEnum[underlyingEnum]) GoString() string {

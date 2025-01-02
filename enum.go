@@ -21,6 +21,7 @@ import (
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
 	"github.com/xybor-x/enum/internal/xreflect"
+	"gopkg.in/yaml.v3"
 )
 
 // newableEnum is an internal interface used for handling centralized
@@ -307,11 +308,48 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 	return nil
 }
 
+// MarshalYAML serializes an enum value into its string representation.
+func MarshalYAML[Enum any](value Enum) (any, error) {
+	s, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](value))
+	if !ok {
+		return nil, fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), value)
+	}
+
+	return s, nil
+}
+
+// UnmarshalYAML deserializes a string representation of an enum value from
+// YAML.
+func UnmarshalYAML[Enum any](value *yaml.Node, t *Enum) error {
+	// Check if the value is a scalar (string in this case)
+	if value.Kind != yaml.ScalarNode {
+		return fmt.Errorf("enum %s: only supports scalar in yaml enum", TrueNameOf[Enum]())
+	}
+
+	// Assign the string value directly
+	var s string
+	if err := value.Decode(&s); err != nil {
+		return err
+	}
+
+	var ok bool
+	*t, ok = From[Enum](s)
+	if !ok {
+		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), s)
+	}
+
+	return nil
+}
+
 // MarshalXML converts enum to its string representation.
 func MarshalXML[Enum any](encoder *xml.Encoder, start xml.StartElement, enum Enum) error {
 	str, ok := To[string](enum)
 	if !ok {
 		return fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), enum)
+	}
+
+	if start.Name.Local == "" {
+		start.Name.Local = NameOf[Enum]()
 	}
 
 	return encoder.EncodeElement(str, start)
