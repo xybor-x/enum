@@ -169,9 +169,7 @@ func TestNullableYAML(t *testing.T) {
 	assert.Equal(t, RoleUser, s.Role.Enum)
 
 	err = yaml.Unmarshal([]byte("id: 1\nname: tester\nrole:\n- user\n"), &s)
-	assert.NoError(t, err)
-	assert.True(t, s.Role.Valid)
-	assert.Equal(t, RoleUser, s.Role.Enum)
+	assert.ErrorContains(t, err, "enum WrapEnum[role]: only supports scalar in yaml enum")
 }
 
 func TestNullableYAMLNull(t *testing.T) {
