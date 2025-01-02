@@ -3,6 +3,7 @@ package testing_test
 import (
 	"database/sql"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"testing"
 
@@ -501,7 +502,8 @@ func TestEnumJSON(t *testing.T) {
 	type Role = enum.WrapEnum[role]
 
 	var (
-		RoleUser = enum.New[Role]("user")
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
 	)
 
 	type TestJSON struct {
@@ -518,11 +520,41 @@ func TestEnumJSON(t *testing.T) {
 
 	data, err := json.Marshal(s)
 	assert.NoError(t, err)
-	assert.Equal(t, "{\"id\":1,\"name\":\"tester\",\"role\":\"user\"}", string(data))
+	assert.Equal(t, `{"id":1,"name":"tester","role":"user"}`, string(data))
 
-	err = json.Unmarshal([]byte("{\"id\":1,\"name\":\"tester\",\"role\":\"user\"}"), &s)
+	err = json.Unmarshal([]byte(`{"id":1,"name":"tester","role":"admin"}`), &s)
 	assert.NoError(t, err)
-	assert.Equal(t, RoleUser, s.Role)
+	assert.Equal(t, RoleAdmin, s.Role)
+}
+
+func TestEnumXML(t *testing.T) {
+	type role any
+	type Role = enum.WrapEnum[role]
+
+	var (
+		RoleUser  = enum.New[Role]("user")
+		RoleAdmin = enum.New[Role]("admin")
+	)
+
+	type TestXML struct {
+		ID   int    `xml:"id"`
+		Name string `xml:"name"`
+		Role Role   `xml:"role"`
+	}
+
+	s := TestXML{
+		ID:   1,
+		Name: "tester",
+		Role: RoleUser,
+	}
+
+	data, err := xml.Marshal(s)
+	assert.NoError(t, err)
+	assert.Equal(t, "<TestXML><id>1</id><name>tester</name><role>user</role></TestXML>", string(data))
+
+	err = xml.Unmarshal([]byte("<TestXML><id>1</id><name>tester</name><role>admin</role></TestXML>"), &s)
+	assert.NoError(t, err)
+	assert.Equal(t, RoleAdmin, s.Role)
 }
 
 func TestEnumPrintZeroStruct(t *testing.T) {

@@ -2,10 +2,12 @@ package enum
 
 import (
 	"database/sql/driver"
+	"encoding/xml"
 	"fmt"
 
 	"github.com/xybor-x/enum/internal/core"
 	"github.com/xybor-x/enum/internal/xreflect"
+	"gopkg.in/yaml.v3"
 )
 
 var _ newableEnum = WrapEnum[int](0)
@@ -25,6 +27,22 @@ func (e WrapEnum[underlyingEnum]) MarshalJSON() ([]byte, error) {
 
 func (e *WrapEnum[underlyingEnum]) UnmarshalJSON(data []byte) error {
 	return UnmarshalJSON(data, e)
+}
+
+func (e WrapEnum[underlyingEnum]) MarshalXML(encoder *xml.Encoder, start xml.StartElement) error {
+	return MarshalXML(encoder, start, e)
+}
+
+func (e *WrapEnum[underlyingEnum]) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) error {
+	return UnmarshalXML(decoder, start, e)
+}
+
+func (e WrapEnum[underlyingEnum]) MarshalYAML() (any, error) {
+	return MarshalYAML(e)
+}
+
+func (e *WrapEnum[underlyingEnum]) UnmarshalYAML(node *yaml.Node) error {
+	return UnmarshalYAML(node, e)
 }
 
 func (e WrapEnum[underlyingEnum]) Value() (driver.Value, error) {

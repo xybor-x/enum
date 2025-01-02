@@ -12,6 +12,7 @@ package enum
 
 import (
 	"database/sql/driver"
+	"encoding/xml"
 	"fmt"
 	"math"
 	"reflect"
@@ -20,6 +21,7 @@ import (
 	"github.com/xybor-x/enum/internal/mtkey"
 	"github.com/xybor-x/enum/internal/mtmap"
 	"github.com/xybor-x/enum/internal/xreflect"
+	"gopkg.in/yaml.v3"
 )
 
 // newableEnum is an internal interface used for handling centralized
@@ -266,14 +268,14 @@ func To[P, Enum any](enum Enum) (P, bool) {
 
 // MustTo returns the representation (the type is relied on P type parameter)
 // for the given enum value. It returns zero value if the enum is invalid or the
-// enum doesn't have any representation of type P..
+// enum doesn't have any representation of type P.
 func MustTo[P, Enum any](enum Enum) P {
 	val, _ := To[P](enum)
 	return val
 }
 
-// IsValid checks if an enum value is valid.
-// It returns true if the enum value is valid, and false otherwise.
+// IsValid checks if an enum value is valid. It returns true if the enum value
+// is valid, and false otherwise.
 func IsValid[Enum any](value Enum) bool {
 	_, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](value))
 	return ok
@@ -303,6 +305,69 @@ func UnmarshalJSON[Enum any](data []byte, t *Enum) (err error) {
 	}
 
 	*t = enum
+	return nil
+}
+
+// MarshalYAML serializes an enum value into its string representation.
+func MarshalYAML[Enum any](value Enum) (any, error) {
+	s, ok := mtmap.Get2(mtkey.Enum2Repr[Enum, string](value))
+	if !ok {
+		return nil, fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), value)
+	}
+
+	return s, nil
+}
+
+// UnmarshalYAML deserializes a string representation of an enum value from
+// YAML.
+func UnmarshalYAML[Enum any](value *yaml.Node, t *Enum) error {
+	// Check if the value is a scalar (string in this case)
+	if value.Kind != yaml.ScalarNode {
+		return fmt.Errorf("enum %s: only supports scalar in yaml enum", TrueNameOf[Enum]())
+	}
+
+	// Assign the string value directly
+	var s string
+	if err := value.Decode(&s); err != nil {
+		return err
+	}
+
+	var ok bool
+	*t, ok = From[Enum](s)
+	if !ok {
+		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), s)
+	}
+
+	return nil
+}
+
+// MarshalXML converts enum to its string representation.
+func MarshalXML[Enum any](encoder *xml.Encoder, start xml.StartElement, enum Enum) error {
+	str, ok := To[string](enum)
+	if !ok {
+		return fmt.Errorf("enum %s: invalid value %#v", TrueNameOf[Enum](), enum)
+	}
+
+	if start.Name.Local == "" {
+		start.Name.Local = NameOf[Enum]()
+	}
+
+	return encoder.EncodeElement(str, start)
+}
+
+// UnmarshalXML parses the string representation back into an enum.
+func UnmarshalXML[Enum any](decoder *xml.Decoder, start xml.StartElement, enum *Enum) error {
+	var str string
+	if err := decoder.DecodeElement(&str, &start); err != nil {
+		return err
+	}
+
+	val, ok := FromString[Enum](str)
+	if !ok {
+		return fmt.Errorf("enum %s: unknown string %s", TrueNameOf[Enum](), str)
+	}
+
+	*enum = val
 	return nil
 }
 
