@@ -231,10 +231,12 @@ Serialization and deserialization are essential when working with enums, and our
 Currently supported:
 - `JSON`: Implements `json.Marshaler` and `json.Unmarshaler`.
 - `SQL`: Implements `driver.Valuer` and `sql.Scanner`.
+- `YAML`: Implements `yaml.Marshaler` and `yaml.Unmarshaler`.
+- `XML`: Implements `xml.Marshaler` and `xml.Unmarshaler`.
 
 ## 🔅 Nullable
 
-The `Nullable` transforms an enum type into a nullable enum, akin to `sql.NullXXX`, and is designed to handle nullable values in both JSON and SQL.
+The `Nullable` transforms an enum type into a nullable enum, akin to `sql.NullXXX`, and is designed to handle nullable values in both JSON, YAML, and SQL.
 
 ```go
 type Role int
